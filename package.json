@@ -1,0 +1,42 @@
+{
+  "name": "tumble",
+  "author": "MakeAwesomeHappen",
+  "version": "1.0.0",
+  "keywords": ["pebble-app"],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "tumble",
+    "uuid": "f3998a09-ed55-47aa-98bd-f42a8f745f4e",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "aplite"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "messageKeys": [
+      "dummy"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "font",
+          "name": "BEBAS_NEUE_49",
+          "file": "fonts/BebasNeue-Regular.ttf"
+        },
+        {
+          "type": "font",
+          "name": "BEBAS_NEUE_28",
+          "file": "fonts/BebasNeue-Regular.ttf"
+        },
+        {
+          "type": "font",
+          "name": "BEBAS_NEUE_20",
+          "file": "fonts/BebasNeue-Regular.ttf"
+        }
+      ]
+    }
+  }
+}
