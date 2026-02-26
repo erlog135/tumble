@@ -1,23 +1,36 @@
 {
-  "name": "tumble",
-  "author": "MakeAwesomeHappen",
+  "name": "Tumble",
+  "author": "Logan Head",
   "version": "1.0.0",
-  "keywords": ["pebble-app"],
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@rebble/clay": "^1.0.8"
+  },
   "pebble": {
-    "displayName": "tumble",
+    "displayName": "Tumble",
     "uuid": "f3998a09-ed55-47aa-98bd-f42a8f745f4e",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "aplite"
+      "chalk",
+      "diorite"
     ],
     "watchapp": {
       "watchface": true
     },
     "messageKeys": [
-      "dummy"
+      "CFG_BLACK_BG",
+      "CFG_INVERT_MINIVIEW",
+      "CFG_WEATHER_OPTION",
+      "CFG_WEATHER_REFRESH_INTERVAL",
+      "CFG_MINIVIEW_OPTION",
+      "CFG_GRAPH_OPTION",
+      "CFG_SECONDS_OPTION",
+      "CFG_BOTTOM_LEFT_OPTION",
+      "CFG_BOTTOM_RIGHT_OPTION"
     ],
     "resources": {
       "media": [
@@ -35,6 +48,11 @@
           "type": "font",
           "name": "BEBAS_NEUE_20",
           "file": "fonts/BebasNeue-Regular.ttf"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_STEPS",
+          "file": "icons/steps.png"
         }
       ]
     }
