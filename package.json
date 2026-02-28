@@ -52,7 +52,7 @@
         {
           "type": "bitmap",
           "name": "ICON_STEPS",
-          "file": "icons/steps.png"
+          "file": "icons/Steps.png"
         }
       ]
     }
