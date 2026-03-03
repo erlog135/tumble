@@ -6,11 +6,52 @@ typedef struct {
   GBitmap *icon_bitmap;
 } MiniviewData;
 
+#define BORDER_ARC_DEGREES 80
+#define BORDER_DOT_WIDTH 3
+#define BORDER_DECORATION_INNER_MARGIN 3
+
 static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius) {
   graphics_context_set_fill_color(ctx, GColorBlack);
   graphics_fill_circle(ctx, center, radius);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE);
+}
+
+static void prv_draw_border_decoration(GContext *ctx, GPoint center,
+    uint16_t radius, uint16_t inner_radius) {
+  uint16_t deco_radius = inner_radius + BORDER_DECORATION_INNER_MARGIN;
+  uint16_t dot_length = MINIVIEW_BORDER_SIZE - BORDER_DECORATION_INNER_MARGIN;
+
+  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_stroke_width(ctx, 1);
+
+  GRect arc_rect = GRect(center.x - deco_radius, center.y - deco_radius,
+      2 * deco_radius, 2 * deco_radius);
+  int32_t half_arc = DEG_TO_TRIGANGLE(BORDER_ARC_DEGREES / 2);
+
+  // 4 arcs at N, E, S, W (0°, 90°, 180°, 270°), inset from inner edge
+  int32_t arc_centers[] = {
+    DEG_TO_TRIGANGLE(0),   /* North */
+    DEG_TO_TRIGANGLE(90),  /* East */
+    DEG_TO_TRIGANGLE(180), /* South */
+    DEG_TO_TRIGANGLE(270), /* West */
+  };
+  for (int i = 0; i < 4; i++) {
+    graphics_draw_arc(ctx, arc_rect, GOvalScaleModeFitCircle,
+      arc_centers[i] - half_arc, arc_centers[i] + half_arc);
+  }
+
+  // 4 dots at exact compass positions, from inner margin to outer edge
+  int16_t hw = BORDER_DOT_WIDTH / 2;
+  graphics_context_set_fill_color(ctx, GColorWhite);
+  graphics_fill_rect(ctx, GRect(center.x - hw, center.y - radius,
+      BORDER_DOT_WIDTH, dot_length), 0, GCornerNone); /* N */
+  graphics_fill_rect(ctx, GRect(center.x + deco_radius, center.y - hw,
+      dot_length, BORDER_DOT_WIDTH), 0, GCornerNone); /* E */
+  graphics_fill_rect(ctx, GRect(center.x - hw, center.y + deco_radius,
+      BORDER_DOT_WIDTH, dot_length), 0, GCornerNone); /* S */
+  graphics_fill_rect(ctx, GRect(center.x - radius, center.y - hw,
+      dot_length, BORDER_DOT_WIDTH), 0, GCornerNone); /* W */
 }
 
 static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint center) {
@@ -28,6 +69,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   uint16_t inner_radius = radius - MINIVIEW_BORDER_SIZE;
 
   prv_draw_background(ctx, center, radius);
+  prv_draw_border_decoration(ctx, center, radius, inner_radius);
 
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:

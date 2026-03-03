@@ -7,13 +7,13 @@ static ClaySettings settings;
 static void prv_default_settings(void) {
     settings.black_bg = true;
     settings.invert_miniview = true;
-    settings.weather_option = 0; //WeatherKit
-    settings.weather_refresh_interval = 30; // 30 minutes
-    settings.miniview_option = 2; //DOTW and date
-    settings.graph_option = 0; //Steps
-    settings.seconds_option = 0; //Seconds always on
-    settings.bottom_left_option = 7; //Sunrise/sunset
-    settings.bottom_right_option = 0; //Battery
+    settings.weather_option = WEATHER_OPTION_WEATHERKIT;
+    settings.weather_refresh_interval = 30;
+    settings.miniview_option = MINIVIEW_OPTION_DATE_DOW_DATE;
+    settings.graph_option = GRAPH_OPTION_STEPS;
+    settings.seconds_option = SECONDS_OPTION_ALWAYS_ON;
+    settings.bottom_left_option = BOTTOM_OPTION_SUNRISE_SUNSET;
+    settings.bottom_right_option = BOTTOM_OPTION_DATE_MONTH_DATE;
 }
 
 void settings_init(void) {

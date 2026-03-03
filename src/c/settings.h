@@ -1,6 +1,57 @@
 #pragma once
 #include <pebble.h>
 
+typedef enum {
+    WEATHER_OPTION_WEATHERKIT  = 0,
+    WEATHER_OPTION_OPEN_METEO  = 1,
+} WeatherOption;
+
+typedef enum {
+    MINIVIEW_OPTION_DATE_MONTH_DATE = 0,
+    MINIVIEW_OPTION_DATE_DOW_DATE   = 1,
+    MINIVIEW_OPTION_HEART_RATE      = 2,
+    MINIVIEW_OPTION_STEPS           = 3,
+    MINIVIEW_OPTION_CALORIES        = 4,
+    MINIVIEW_OPTION_ALTITUDE        = 5,
+    MINIVIEW_OPTION_AIR_PRESSURE    = 6,
+    MINIVIEW_OPTION_SUNRISE_SUNSET  = 7,
+    MINIVIEW_OPTION_WEATHER         = 8,
+    MINIVIEW_OPTION_CUSTOM_TZ       = 9,
+    MINIVIEW_OPTION_SUN_POSITION    = 10,
+    MINIVIEW_OPTION_MOON_PHASE      = 11,
+    MINIVIEW_OPTION_BATTERY         = 12,
+    MINIVIEW_OPTION_BATTERY_DND     = 13,
+} MiniviewOption;
+
+typedef enum {
+    GRAPH_OPTION_STEPS        = 0,
+    GRAPH_OPTION_HEART_RATE   = 1,
+    GRAPH_OPTION_AIR_PRESSURE = 2,
+    GRAPH_OPTION_ALTITUDE     = 3,
+    GRAPH_OPTION_BATTERY      = 4,
+    GRAPH_OPTION_TEMPERATURE  = 5,
+} GraphOption;
+
+typedef enum {
+    SECONDS_OPTION_ALWAYS_ON    = 0,
+    SECONDS_OPTION_SHAKE_30S    = 1,
+    SECONDS_OPTION_SHAKE_15S    = 2,
+    SECONDS_OPTION_ALWAYS_OFF   = 3,
+} SecondsOption;
+
+typedef enum {
+    BOTTOM_OPTION_DATE_MONTH_DATE  = 0,
+    BOTTOM_OPTION_DATE_DOW_DATE    = 1,
+    BOTTOM_OPTION_STEPS            = 2,
+    BOTTOM_OPTION_HEART_RATE       = 3,
+    BOTTOM_OPTION_CALORIES         = 4,
+    BOTTOM_OPTION_ALTITUDE         = 5,
+    BOTTOM_OPTION_AIR_PRESSURE     = 6,
+    BOTTOM_OPTION_PRESSURE_TREND   = 7,
+    BOTTOM_OPTION_SUNRISE_SUNSET   = 8,
+    BOTTOM_OPTION_TEMPERATURE      = 9,
+} BottomOption;
+
 typedef struct {
     bool black_bg;
     bool invert_miniview;

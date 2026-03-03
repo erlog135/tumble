@@ -12,7 +12,9 @@ static TextLayer *s_time_layer;
 static TextLayer *s_seconds_layer;
 static Layer *s_bottom_left_layer;
 static Layer *s_bottom_right_layer;
+#if DRAW_DEBUG_RECTANGLES
 static Layer *s_debug_layer;
+#endif
 
 static Layout s_layout;
 
@@ -37,6 +39,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
 }
 
+#if DRAW_DEBUG_RECTANGLES
 static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_stroke_color(ctx, GColorWhite);
   graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
@@ -46,6 +49,7 @@ static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_rect(ctx, s_layout.bottom_left_bounds);
   graphics_draw_rect(ctx, s_layout.bottom_right_bounds);
 }
+#endif
 
 static TextLayer *make_placeholder(GRect bounds, const char *text, GFont font) {
   TextLayer *layer = text_layer_create(bounds);
@@ -114,15 +118,19 @@ static void main_window_load(Window *window) {
   bottom_complication_set_text(s_bottom_right_layer, "512 cal");
   layer_add_child(window_layer, s_bottom_right_layer);
 
+#if DRAW_DEBUG_RECTANGLES
   s_debug_layer = layer_create(bounds);
   layer_set_update_proc(s_debug_layer, debug_layer_update_proc);
   layer_add_child(window_layer, s_debug_layer);
+#endif
 
   update_time();
 }
 
 static void main_window_unload(Window *window) {
+#if DRAW_DEBUG_RECTANGLES
   layer_destroy(s_debug_layer);
+#endif
   graph_destroy(s_graph_layer);
   miniview_destroy(s_miniview_layer);
   text_layer_destroy(s_time_layer);

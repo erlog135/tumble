@@ -1,6 +1,8 @@
 #pragma once
 #include <pebble.h>
 
+#define DRAW_DEBUG_RECTANGLES 0
+
 #define MINIVIEW_BORDER_SIZE 6
 
 #define TOP_SECTION_HEIGHT_RATIO 0.40f
@@ -9,7 +11,7 @@
 #define BOTTOM_SECTION_HEIGHT_RATIO 0.20f
 
 #define SECTION_MARGIN 2
-#define GRAPH_PLOT_MARGIN 10
+#define GRAPH_PLOT_MARGIN 4
 
 #define TIME_FONT_HEIGHT 50
 #define SMALL_FONT_HEIGHT 24

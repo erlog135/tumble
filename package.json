@@ -16,6 +16,7 @@
     "enableMultiJS": true,
     "targetPlatforms": [
       "chalk",
+      "basalt",
       "diorite"
     ],
     "watchapp": {

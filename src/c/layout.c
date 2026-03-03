@@ -12,8 +12,8 @@ void layout_init(Layout *layout, GRect bounds) {
     GRect miniview_rect = GRect(layout->top_section_bounds.size.w - miniview_size, 0, miniview_size, miniview_size);
     layout->graph_layer_bounds = grect_inset(graph_rect, GEdgeInsets(SECTION_MARGIN));
     layout->graph_plot_bounds = GRect(
-        layout->graph_layer_bounds.origin.x + GRAPH_PLOT_MARGIN,
-        layout->graph_layer_bounds.origin.y + TINY_FONT_HEIGHT,
+        GRAPH_PLOT_MARGIN,
+        TINY_FONT_HEIGHT,
         layout->graph_layer_bounds.size.w - GRAPH_PLOT_MARGIN * 2,
         layout->graph_layer_bounds.size.h - TINY_FONT_HEIGHT - GRAPH_PLOT_MARGIN
     );
