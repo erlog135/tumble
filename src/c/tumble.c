@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "layout.h"
+#include "time_display.h"
 #include "complications/graph.h"
 #include "complications/miniview.h"
 #include "complications/bottom.h"
@@ -8,8 +9,7 @@ static Window *s_main_window;
 
 static Layer *s_graph_layer;
 static Layer *s_miniview_layer;
-static TextLayer *s_time_layer;
-static TextLayer *s_seconds_layer;
+static Layer *s_time_display_layer;
 static Layer *s_bottom_left_layer;
 static Layer *s_bottom_right_layer;
 #if DRAW_DEBUG_RECTANGLES
@@ -18,21 +18,13 @@ static Layer *s_debug_layer;
 
 static Layout s_layout;
 
-static GFont s_font_49;
 static GFont s_font_28;
 static GFont s_font_20;
 
 static void update_time() {
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
-
-  static char s_time_buffer[8];
-  strftime(s_time_buffer, sizeof(s_time_buffer), clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
-  text_layer_set_text(s_time_layer, s_time_buffer);
-
-  static char s_seconds_buffer[3];
-  strftime(s_seconds_buffer, sizeof(s_seconds_buffer), "%S", tick_time);
-  text_layer_set_text(s_seconds_layer, s_seconds_buffer);
+  time_display_set_time(s_time_display_layer, tick_time);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -45,27 +37,15 @@ static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
   graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
   graphics_draw_rect(ctx, s_layout.miniview_bounds);
   graphics_draw_rect(ctx, s_layout.time_layer_bounds);
-  graphics_draw_rect(ctx, s_layout.seconds_layer_bounds);
   graphics_draw_rect(ctx, s_layout.bottom_left_bounds);
   graphics_draw_rect(ctx, s_layout.bottom_right_bounds);
 }
 #endif
 
-static TextLayer *make_placeholder(GRect bounds, const char *text, GFont font) {
-  TextLayer *layer = text_layer_create(bounds);
-  text_layer_set_background_color(layer, GColorClear);
-  text_layer_set_text_color(layer, GColorWhite);
-  text_layer_set_font(layer, font);
-  text_layer_set_text_alignment(layer, GTextAlignmentCenter);
-  text_layer_set_text(layer, text);
-  return layer;
-}
-
 static void main_window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
 
-  s_font_49 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_NEUE_49));
   s_font_28 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
   s_font_20 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_NEUE_20));
 
@@ -94,11 +74,8 @@ static void main_window_load(Window *window) {
   s_miniview_layer = miniview_create(s_layout.miniview_bounds, miniview_config);
   layer_add_child(window_layer, s_miniview_layer);
 
-  s_time_layer = make_placeholder(s_layout.time_layer_bounds, "TIME", s_font_49);
-  layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
-
-  s_seconds_layer = make_placeholder(s_layout.seconds_layer_bounds, "00", s_font_20);
-  layer_add_child(window_layer, text_layer_get_layer(s_seconds_layer));
+  s_time_display_layer = time_display_create(s_layout.time_layer_bounds, s_font_20);
+  layer_add_child(window_layer, s_time_display_layer);
 
   s_bottom_left_layer = bottom_complication_create(s_layout.bottom_left_bounds, (BottomConfig) {
     .mode = BOTTOM_MODE_ICON_TEXT,
@@ -133,11 +110,9 @@ static void main_window_unload(Window *window) {
 #endif
   graph_destroy(s_graph_layer);
   miniview_destroy(s_miniview_layer);
-  text_layer_destroy(s_time_layer);
-  text_layer_destroy(s_seconds_layer);
+  time_display_destroy(s_time_display_layer);
   bottom_complication_destroy(s_bottom_left_layer);
   bottom_complication_destroy(s_bottom_right_layer);
-  fonts_unload_custom_font(s_font_49);
   fonts_unload_custom_font(s_font_28);
   fonts_unload_custom_font(s_font_20);
 }

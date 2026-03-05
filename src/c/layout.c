@@ -25,6 +25,12 @@ void layout_init(Layout *layout, GRect bounds) {
 
     GRect time_layer_rect = GRect(layout->mid_section_bounds.origin.x, layout->mid_section_bounds.origin.y, layout->mid_section_bounds.size.w, layout->mid_section_bounds.size.h);
     layout->time_layer_bounds = grect_inset(time_layer_rect, GEdgeInsets(SECTION_MARGIN));
+    layout->time_display_bounds = GRect(
+        layout->time_layer_bounds.origin.x,
+        layout->time_layer_bounds.origin.y,
+        layout->time_layer_bounds.size.w - SECONDS_LAYER_WIDTH,
+        BITMAP_GLYPH_HEIGHT
+    );
     layout->seconds_layer_bounds = GRect(
         layout->time_layer_bounds.origin.x + layout->time_layer_bounds.size.w - SECONDS_LAYER_WIDTH,
         layout->time_layer_bounds.origin.y,

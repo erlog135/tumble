@@ -54,6 +54,11 @@
           "type": "bitmap",
           "name": "ICON_STEPS",
           "file": "icons/Steps.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "SHEET_GLYPHS_52",
+          "file": "fonts/bitmaps/BebasNeue52.png"
         }
       ]
     }
