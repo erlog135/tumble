@@ -18,7 +18,7 @@ typedef struct {
   GraphStyle style;
   uint8_t h_markers;         // tick marks evenly spaced along the bottom axis
   uint8_t v_markers;         // tick marks evenly spaced along both vertical edges
-  bool top_lip;              // short horizontal cap at the top of each data point
+  bool top_lip;              // tick marks at the top of both vertical edges
   GFont label_font;
   uint32_t icon_resource_id; // icon shown to the left of label_text in the header
   const char *label_text;

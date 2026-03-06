@@ -1,142 +1,188 @@
 #include <pebble.h>
 #include "layout.h"
+#include "settings.h"
 #include "time_display.h"
-#include "complications/graph.h"
-#include "complications/miniview.h"
-#include "complications/bottom.h"
+#include "providers/providers.h"
 
 static Window *s_main_window;
-
-static Layer *s_graph_layer;
-static Layer *s_miniview_layer;
 static Layer *s_time_display_layer;
-static Layer *s_bottom_left_layer;
-static Layer *s_bottom_right_layer;
 #if DRAW_DEBUG_RECTANGLES
 static Layer *s_debug_layer;
 #endif
 
 static Layout s_layout;
-
 static GFont s_font_28;
 static GFont s_font_20;
+static GFont s_font_seconds;
 
-static void update_time() {
-  time_t temp = time(NULL);
-  struct tm *tick_time = localtime(&temp);
-  time_display_set_time(s_time_display_layer, tick_time);
+static void update_time(void) {
+    time_t temp = time(NULL);
+    struct tm *tick_time = localtime(&temp);
+    time_display_set_time(s_time_display_layer, tick_time);
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
+    update_time();
+    if (units_changed & MINUTE_UNIT) {
+        providers_on_minute_tick(tick_time);
+    }
+}
+
+static void update_tick_subscription(void) {
+    ClaySettings *cfg = settings_get();
+    TimeUnits units = (cfg->seconds_option != SECONDS_OPTION_ALWAYS_OFF)
+        ? SECOND_UNIT : MINUTE_UNIT;
+    tick_timer_service_subscribe(units, tick_handler);
 }
 
 #if DRAW_DEBUG_RECTANGLES
 static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
-  graphics_context_set_stroke_color(ctx, GColorWhite);
-  graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
-  graphics_draw_rect(ctx, s_layout.miniview_bounds);
-  graphics_draw_rect(ctx, s_layout.time_layer_bounds);
-  graphics_draw_rect(ctx, s_layout.bottom_left_bounds);
-  graphics_draw_rect(ctx, s_layout.bottom_right_bounds);
+    graphics_context_set_stroke_color(ctx, GColorWhite);
+    graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
+    graphics_draw_rect(ctx, s_layout.miniview_bounds);
+    graphics_draw_rect(ctx, s_layout.time_layer_bounds);
+    graphics_draw_rect(ctx, s_layout.bottom_left_bounds);
+    graphics_draw_rect(ctx, s_layout.bottom_right_bounds);
 }
 #endif
 
+static int32_t prv_tuple_int(Tuple *t) {
+    if (!t) return 0;
+    if (t->type == TUPLE_CSTRING) {
+        int32_t result = 0;
+        bool negative = false;
+        const char *s = t->value->cstring;
+        if (*s == '-') { negative = true; s++; }
+        while (*s >= '0' && *s <= '9') {
+            result = result * 10 + (*s - '0');
+            s++;
+        }
+        return negative ? -result : result;
+    }
+    return t->value->int32;
+}
+
+static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+    (void)context;
+
+    Tuple *cfg_t = dict_find(iter, MESSAGE_KEY_CFG_BLACK_BG);
+    if (cfg_t) {
+        ClaySettings *s = settings_get();
+        s->black_bg = (bool)prv_tuple_int(cfg_t);
+
+        Tuple *t;
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_INVERT_MINIVIEW)))
+            s->invert_miniview = (bool)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_WEATHER_OPTION)))
+            s->weather_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_WEATHER_REFRESH_INTERVAL)))
+            s->weather_refresh_interval = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_MINIVIEW_OPTION)))
+            s->miniview_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_GRAPH_OPTION)))
+            s->graph_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_SECONDS_OPTION)))
+            s->seconds_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_BOTTOM_LEFT_OPTION)))
+            s->bottom_left_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_BOTTOM_RIGHT_OPTION)))
+            s->bottom_right_option = (uint8_t)prv_tuple_int(t);
+
+        settings_save();
+
+        window_set_background_color(s_main_window,
+            s->black_bg ? GColorBlack : GColorWhite);
+
+        providers_apply_settings();
+        update_tick_subscription();
+        return;
+    }
+
+    Tuple *weather_t = dict_find(iter, MESSAGE_KEY_WEATHER_TEMPERATURE);
+    if (weather_t) {
+        providers_on_weather_data(iter);
+        return;
+    }
+}
+
+static void inbox_dropped_handler(AppMessageResult reason, void *context) {
+    (void)context;
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped: %d", reason);
+}
+
 static void main_window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_bounds(window_layer);
+    Layer *window_layer = window_get_root_layer(window);
+    GRect bounds = layer_get_bounds(window_layer);
 
-  s_font_28 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
-  s_font_20 = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_BEBAS_NEUE_20));
+    s_font_28 = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
+    s_font_20 = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_NUMS_AND_ICONS_16));
+    s_font_seconds = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_NUMS_THIN_16));
 
-  layout_init(&s_layout, bounds);
+    layout_init(&s_layout, bounds);
 
-  s_graph_layer = graph_create(s_layout.graph_layer_bounds, s_layout.graph_plot_bounds, (GraphConfig) {
-    .style = GRAPH_STYLE_BARS,
-    .h_markers = 4,
-    .v_markers = 3,
-    .top_lip = true,
-    .label_font = s_font_20,
-    .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-    .label_text = "STEPS",
-  });
-  layer_add_child(window_layer, s_graph_layer);
+    s_time_display_layer = time_display_create(
+        s_layout.time_layer_bounds, s_font_seconds);
+    layer_add_child(window_layer, s_time_display_layer);
 
-  MiniviewConfig miniview_config = {
-    .mode = MINIVIEW_MODE_CLOCK_DOTS,
-    .tiny_text_bounds = s_layout.miniview_tiny_text_bounds,
-    .small_text_bounds = s_layout.miniview_small_text_bounds,
-    .tiny_font = s_font_20,
-    .small_font = s_font_28,
-    .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-    .icon_offset = GPoint(0, -15),
-  };
-  s_miniview_layer = miniview_create(s_layout.miniview_bounds, miniview_config);
-  layer_add_child(window_layer, s_miniview_layer);
-
-  s_time_display_layer = time_display_create(s_layout.time_layer_bounds, s_font_20);
-  layer_add_child(window_layer, s_time_display_layer);
-
-  s_bottom_left_layer = bottom_complication_create(s_layout.bottom_left_bounds, (BottomConfig) {
-    .mode = BOTTOM_MODE_ICON_TEXT,
-    .align = BOTTOM_ALIGN_RIGHT,
-    .font = s_font_20,
-    .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-  });
-  bottom_complication_set_text(s_bottom_left_layer, "8,432");
-  layer_add_child(window_layer, s_bottom_left_layer);
-
-  s_bottom_right_layer = bottom_complication_create(s_layout.bottom_right_bounds, (BottomConfig) {
-    .mode = BOTTOM_MODE_ICON_TEXT,
-    .align = BOTTOM_ALIGN_LEFT,
-    .font = s_font_20,
-    .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-  });
-  bottom_complication_set_text(s_bottom_right_layer, "512 cal");
-  layer_add_child(window_layer, s_bottom_right_layer);
+    providers_init(window_layer, &s_layout, s_font_20, s_font_28);
+    providers_apply_settings();
 
 #if DRAW_DEBUG_RECTANGLES
-  s_debug_layer = layer_create(bounds);
-  layer_set_update_proc(s_debug_layer, debug_layer_update_proc);
-  layer_add_child(window_layer, s_debug_layer);
+    s_debug_layer = layer_create(bounds);
+    layer_set_update_proc(s_debug_layer, debug_layer_update_proc);
+    layer_add_child(window_layer, s_debug_layer);
 #endif
 
-  update_time();
+    update_time();
 }
 
 static void main_window_unload(Window *window) {
+    (void)window;
+
 #if DRAW_DEBUG_RECTANGLES
-  layer_destroy(s_debug_layer);
+    layer_destroy(s_debug_layer);
 #endif
-  graph_destroy(s_graph_layer);
-  miniview_destroy(s_miniview_layer);
-  time_display_destroy(s_time_display_layer);
-  bottom_complication_destroy(s_bottom_left_layer);
-  bottom_complication_destroy(s_bottom_right_layer);
-  fonts_unload_custom_font(s_font_28);
-  fonts_unload_custom_font(s_font_20);
+    providers_deinit();
+    time_display_destroy(s_time_display_layer);
+    fonts_unload_custom_font(s_font_28);
+    fonts_unload_custom_font(s_font_20);
+    fonts_unload_custom_font(s_font_seconds);
 }
 
-static void init() {
-  s_main_window = window_create();
-  window_set_background_color(s_main_window, GColorBlack);
+static void init(void) {
+    settings_load();
 
-  window_set_window_handlers(s_main_window, (WindowHandlers) {
-    .load = main_window_load,
-    .unload = main_window_unload,
-  });
+    s_main_window = window_create();
 
-  window_stack_push(s_main_window, true);
+    ClaySettings *cfg = settings_get();
+    window_set_background_color(s_main_window,
+        cfg->black_bg ? GColorBlack : GColorWhite);
 
-  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+    window_set_window_handlers(s_main_window, (WindowHandlers) {
+        .load = main_window_load,
+        .unload = main_window_unload,
+    });
+
+    window_stack_push(s_main_window, true);
+
+    update_tick_subscription();
+
+    app_message_register_inbox_received(inbox_received_handler);
+    app_message_register_inbox_dropped(inbox_dropped_handler);
+    app_message_open(
+        app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
-static void deinit() {
-  window_destroy(s_main_window);
+static void deinit(void) {
+    tick_timer_service_unsubscribe();
+    window_destroy(s_main_window);
 }
 
 int main(void) {
-  init();
-  app_event_loop();
-  deinit();
+    init();
+    app_event_loop();
+    deinit();
 }

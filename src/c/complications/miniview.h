@@ -26,4 +26,6 @@ typedef struct {
 } MiniviewConfig;
 
 Layer *miniview_create(GRect bounds, MiniviewConfig config);
+void miniview_set_tiny_text(Layer *layer, const char *text);
+void miniview_set_small_text(Layer *layer, const char *text);
 void miniview_destroy(Layer *layer);

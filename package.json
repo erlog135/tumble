@@ -22,6 +22,9 @@
     "watchapp": {
       "watchface": true
     },
+    "capabilities": [
+      "health"
+    ],
     "messageKeys": [
       "CFG_BLACK_BG",
       "CFG_INVERT_MINIVIEW",
@@ -31,15 +34,19 @@
       "CFG_GRAPH_OPTION",
       "CFG_SECONDS_OPTION",
       "CFG_BOTTOM_LEFT_OPTION",
-      "CFG_BOTTOM_RIGHT_OPTION"
+      "CFG_BOTTOM_RIGHT_OPTION",
+      "WEATHER_TEMPERATURE",
+      "WEATHER_CONDITION",
+      "WEATHER_PRESSURE",
+      "WEATHER_PRESSURE_TREND",
+      "WEATHER_ALTITUDE",
+      "WEATHER_SUNRISE",
+      "WEATHER_SUNSET",
+      "WEATHER_SUN_ANGLE",
+      "WEATHER_MOON_PHASE"
     ],
     "resources": {
       "media": [
-        {
-          "type": "font",
-          "name": "BEBAS_NEUE_49",
-          "file": "fonts/BebasNeue-Regular.ttf"
-        },
         {
           "type": "font",
           "name": "BEBAS_NEUE_28",
@@ -51,9 +58,26 @@
           "file": "fonts/BebasNeue-Regular.ttf"
         },
         {
+          "type": "font",
+          "name": "NUMS_AND_ICONS_16",
+          "file": "fonts/NumsAndIcons14.ttf",
+          "characterRegex": "^[0-9:]"
+        },
+        {
+          "type": "font",
+          "name": "NUMS_THIN_16",
+          "file": "fonts/NumsThin13.ttf",
+          "characterRegex": "^[0-9]"
+        },
+        {
           "type": "bitmap",
           "name": "ICON_STEPS",
           "file": "icons/Steps.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUN",
+          "file": "icons/Sun.png"
         },
         {
           "type": "bitmap",
