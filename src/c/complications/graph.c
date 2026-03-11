@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "../layout.h"
+#include <string.h>
 
 typedef struct {
   GraphConfig config;
@@ -9,6 +10,7 @@ typedef struct {
   uint8_t value_count;
   int16_t min_val;
   int16_t max_val;
+  char label_buffer[GRAPH_LABEL_MAX];
 } GraphData;
 
 static int16_t prv_value_to_y(int16_t value, int16_t min_val, int16_t max_val, GRect plot) {
@@ -28,7 +30,9 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
     icon_sz = gbitmap_get_bounds(data->icon_bitmap).size;
   }
 
-  const char *label = data->config.label_text ? data->config.label_text : "";
+  const char *label = (data->label_buffer[0] != '\0')
+    ? data->label_buffer
+    : (data->config.label_text ? data->config.label_text : "");
   GSize text_sz = graphics_text_layout_get_content_size(
     label, data->config.label_font,
     GRect(0, 0, bounds.size.w, TINY_FONT_HEIGHT),
@@ -166,6 +170,8 @@ Layer *graph_create(GRect bounds, GRect plot_bounds, GraphConfig config) {
     ? gbitmap_create_with_resource(config.icon_resource_id)
     : NULL;
 
+  data->label_buffer[0] = '\0';
+
   layer_set_update_proc(layer, graph_update_proc);
   return layer;
 }
@@ -180,6 +186,28 @@ void graph_set_values(Layer *layer, const int16_t *values, uint8_t count,
   data->value_count = n;
   data->min_val = min_val;
   data->max_val = max_val;
+  layer_mark_dirty(layer);
+}
+
+void graph_set_icon(Layer *layer, uint32_t resource_id) {
+  GraphData *data = layer_get_data(layer);
+  if (data->icon_bitmap) {
+    gbitmap_destroy(data->icon_bitmap);
+  }
+  data->icon_bitmap = (resource_id != 0)
+    ? gbitmap_create_with_resource(resource_id)
+    : NULL;
+  layer_mark_dirty(layer);
+}
+
+void graph_set_label_text(Layer *layer, const char *text) {
+  GraphData *data = layer_get_data(layer);
+  if (text) {
+    strncpy(data->label_buffer, text, GRAPH_LABEL_MAX - 1);
+    data->label_buffer[GRAPH_LABEL_MAX - 1] = '\0';
+  } else {
+    data->label_buffer[0] = '\0';
+  }
   layer_mark_dirty(layer);
 }
 

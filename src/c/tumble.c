@@ -117,7 +117,7 @@ static void main_window_load(Window *window) {
     s_font_28 = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
     s_font_20 = fonts_load_custom_font(
-        resource_get_handle(RESOURCE_ID_NUMS_AND_ICONS_16));
+        resource_get_handle(RESOURCE_ID_BEBAS_NEUE_20));
     s_font_seconds = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_NUMS_THIN_16));
 
@@ -173,7 +173,7 @@ static void init(void) {
     app_message_register_inbox_received(inbox_received_handler);
     app_message_register_inbox_dropped(inbox_dropped_handler);
     app_message_open(
-        app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+        240, 240);
 }
 
 static void deinit(void) {

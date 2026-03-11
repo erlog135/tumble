@@ -7,7 +7,8 @@
   ],
   "private": true,
   "dependencies": {
-    "@rebble/clay": "^1.0.8"
+    "@rebble/clay": "^1.0.8",
+    "suncalc": "^1.9.0"
   },
   "pebble": {
     "displayName": "Tumble",
@@ -40,9 +41,7 @@
       "WEATHER_PRESSURE",
       "WEATHER_PRESSURE_TREND",
       "WEATHER_ALTITUDE",
-      "WEATHER_SUNRISE",
-      "WEATHER_SUNSET",
-      "WEATHER_SUN_ANGLE",
+      "WEATHER_SUN_RISE_SET",
       "WEATHER_MOON_PHASE"
     ],
     "resources": {
@@ -59,9 +58,9 @@
         },
         {
           "type": "font",
-          "name": "NUMS_AND_ICONS_16",
-          "file": "fonts/NumsAndIcons14.ttf",
-          "characterRegex": "^[0-9:]"
+          "name": "NUMS_16",
+          "file": "fonts/Nums12.ttf",
+          "characterRegex": "^[0-9:-°]"
         },
         {
           "type": "font",
@@ -76,8 +75,105 @@
         },
         {
           "type": "bitmap",
+          "name": "ICON_CALORIES",
+          "file": "icons/Calories.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_HEART_RATE",
+          "file": "icons/HeartRate.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_ALTITUDE",
+          "file": "icons/Altitude.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE",
+          "file": "icons/Pressure.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_DD",
+          "file": "icons/PressureTrend_DD.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_DS",
+          "file": "icons/PressureTrend_DS.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SD",
+          "file": "icons/PressureTrend_SD.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SS",
+          "file": "icons/PressureTrend_SS.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SU",
+          "file": "icons/PressureTrend_SU.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_US",
+          "file": "icons/PressureTrend_US.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_UU",
+          "file": "icons/PressureTrend_UU.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_0",
+          "file": "icons/Battery0.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_20",
+          "file": "icons/Battery20.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_40",
+          "file": "icons/Battery40.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_60",
+          "file": "icons/Battery60.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_80",
+          "file": "icons/Battery80.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_100",
+          "file": "icons/Battery100.png"
+        },
+        {
+          "type": "bitmap",
           "name": "ICON_SUN",
           "file": "icons/Sun.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUNRISE",
+          "file": "icons/Sunrise.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUNSET",
+          "file": "icons/Sunset.png"
         },
         {
           "type": "bitmap",

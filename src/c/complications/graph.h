@@ -7,6 +7,8 @@
 #define GRAPH_HEADER_ICON_TEXT_GAP 4
 // Maximum number of data values the graph can hold
 #define GRAPH_MAX_VALUES 48
+// Maximum length of dynamic label text in header
+#define GRAPH_LABEL_MAX 24
 
 typedef enum {
   GRAPH_STYLE_LINE,    // continuous polyline connecting data points
@@ -27,4 +29,6 @@ typedef struct {
 Layer *graph_create(GRect bounds, GRect plot_bounds, GraphConfig config);
 void graph_set_values(Layer *layer, const int16_t *values, uint8_t count,
                       int16_t min_val, int16_t max_val);
+void graph_set_label_text(Layer *layer, const char *text);
+void graph_set_icon(Layer *layer, uint32_t resource_id);
 void graph_destroy(Layer *layer);

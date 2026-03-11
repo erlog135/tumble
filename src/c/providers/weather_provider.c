@@ -2,6 +2,7 @@
 #include "../complications/graph.h"
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
+#include "../settings.h"
 
 typedef struct {
     bool active;
@@ -15,6 +16,41 @@ static int16_t s_pressure_trend;
 static int16_t s_altitude;
 static int16_t s_condition;
 static bool s_has_data;
+
+static uint32_t prv_icon_for_graph_option(uint8_t option) {
+    switch (option) {
+        case GRAPH_OPTION_AIR_PRESSURE: return RESOURCE_ID_ICON_PRESSURE;
+        case GRAPH_OPTION_ALTITUDE:     return RESOURCE_ID_ICON_ALTITUDE;
+        default:                        return 0;
+    }
+}
+
+static uint32_t prv_icon_for_miniview_option(uint8_t option) {
+    switch (option) {
+        case MINIVIEW_OPTION_AIR_PRESSURE: return RESOURCE_ID_ICON_PRESSURE;
+        case MINIVIEW_OPTION_ALTITUDE:     return RESOURCE_ID_ICON_ALTITUDE;
+        default:                           return 0;
+    }
+}
+
+static uint32_t prv_icon_for_bottom_option(uint8_t option) {
+    switch (option) {
+        case BOTTOM_OPTION_AIR_PRESSURE:  return RESOURCE_ID_ICON_PRESSURE;
+        case BOTTOM_OPTION_PRESSURE_TREND: return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
+        case BOTTOM_OPTION_ALTITUDE:      return RESOURCE_ID_ICON_ALTITUDE;
+        default:                          return 0;
+    }
+}
+
+static uint32_t prv_pressure_trend_icon(int16_t trend) {
+    if (trend <= -3) return RESOURCE_ID_ICON_PRESSURE_TREND_DD;
+    if (trend == -2) return RESOURCE_ID_ICON_PRESSURE_TREND_DS;
+    if (trend == -1) return RESOURCE_ID_ICON_PRESSURE_TREND_SD;
+    if (trend ==  0) return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
+    if (trend ==  1) return RESOURCE_ID_ICON_PRESSURE_TREND_SU;
+    if (trend ==  2) return RESOURCE_ID_ICON_PRESSURE_TREND_US;
+    return RESOURCE_ID_ICON_PRESSURE_TREND_UU;
+}
 
 void weather_provider_init(void) {
     memset(s_slots, 0, sizeof(s_slots));
@@ -34,13 +70,6 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
 
     switch (slot) {
         case COMPLICATION_GRAPH: {
-            const char *label;
-            switch (option) {
-                case GRAPH_OPTION_AIR_PRESSURE: label = "PRES"; break;
-                case GRAPH_OPTION_ALTITUDE:     label = "ALT";  break;
-                case GRAPH_OPTION_TEMPERATURE:  label = "TEMP"; break;
-                default:                        label = "??";   break;
-            }
             layer = graph_create(layout->graph_layer_bounds,
                                  layout->graph_plot_bounds, (GraphConfig) {
                 .style = GRAPH_STYLE_LINE,
@@ -48,8 +77,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .v_markers = 3,
                 .top_lip = true,
                 .label_font = font_20,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-                .label_text = label,
+                .icon_resource_id = prv_icon_for_graph_option(option),
             });
             break;
         }
@@ -60,7 +88,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .small_text_bounds = layout->miniview_small_text_bounds,
                 .tiny_font = font_20,
                 .small_font = font_28,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
+                .icon_resource_id = prv_icon_for_miniview_option(option),
             });
             miniview_set_small_text(layer, "--");
             break;
@@ -75,7 +103,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .mode = BOTTOM_MODE_ICON_TEXT,
                 .align = align,
                 .font = font_20,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
+                .icon_resource_id = prv_icon_for_bottom_option(option),
             });
             bottom_complication_set_text(layer, "--");
             break;
@@ -103,6 +131,29 @@ void weather_provider_tick(struct tm *tick_time) {
         if (!layer) continue;
 
         switch (i) {
+            case COMPLICATION_GRAPH: {
+                char buf[12];
+                if (!s_has_data) {
+                    strncpy(buf, "--", sizeof(buf));
+                } else {
+                    switch (s_slots[i].option) {
+                        case GRAPH_OPTION_AIR_PRESSURE:
+                            snprintf(buf, sizeof(buf), "%d hPa", s_pressure);
+                            break;
+                        case GRAPH_OPTION_ALTITUDE:
+                            snprintf(buf, sizeof(buf), "%d m", s_altitude);
+                            break;
+                        case GRAPH_OPTION_TEMPERATURE:
+                            snprintf(buf, sizeof(buf), "%d°", s_temperature);
+                            break;
+                        default:
+                            strncpy(buf, "--", sizeof(buf));
+                            break;
+                    }
+                }
+                graph_set_label_text(layer, buf);
+                break;
+            }
             case COMPLICATION_MINIVIEW: {
                 char buf[12];
                 if (!s_has_data) {
@@ -141,6 +192,7 @@ void weather_provider_tick(struct tm *tick_time) {
                             break;
                         case BOTTOM_OPTION_PRESSURE_TREND:
                             snprintf(buf, sizeof(buf), "%+d", s_pressure_trend);
+                            bottom_complication_set_icon(layer, prv_pressure_trend_icon(s_pressure_trend));
                             break;
                         case BOTTOM_OPTION_TEMPERATURE:
                             snprintf(buf, sizeof(buf), "%d", s_temperature);

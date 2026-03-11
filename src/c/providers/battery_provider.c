@@ -2,6 +2,15 @@
 #include "../complications/graph.h"
 #include "../complications/miniview.h"
 
+static uint32_t prv_battery_icon(int percent) {
+    if (percent <= 0)  return RESOURCE_ID_ICON_BATTERY_0;
+    if (percent <= 20) return RESOURCE_ID_ICON_BATTERY_20;
+    if (percent <= 40) return RESOURCE_ID_ICON_BATTERY_40;
+    if (percent <= 60) return RESOURCE_ID_ICON_BATTERY_60;
+    if (percent <= 80) return RESOURCE_ID_ICON_BATTERY_80;
+    return RESOURCE_ID_ICON_BATTERY_100;
+}
+
 typedef struct {
     bool active;
     uint8_t option;
@@ -29,6 +38,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
 
     switch (slot) {
         case COMPLICATION_GRAPH: {
+            BatteryChargeState state = battery_state_service_peek();
             layer = graph_create(layout->graph_layer_bounds,
                                  layout->graph_plot_bounds, (GraphConfig) {
                 .style = GRAPH_STYLE_LINE,
@@ -36,13 +46,16 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .v_markers = 3,
                 .top_lip = true,
                 .label_font = font_20,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-                .label_text = "BAT",
+                .icon_resource_id = prv_battery_icon(state.charge_percent),
             });
-            BatteryChargeState state = battery_state_service_peek();
             s_battery_history[0] = state.charge_percent;
             s_battery_count = 1;
             graph_set_values(layer, s_battery_history, s_battery_count, 0, 100);
+            {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
+                graph_set_label_text(layer, buf);
+            }
             break;
         }
         case COMPLICATION_MINIVIEW: {
@@ -99,6 +112,12 @@ void battery_provider_tick(struct tm *tick_time) {
                     s_battery_history[GRAPH_MAX_VALUES - 1] = state.charge_percent;
                 }
                 graph_set_values(layer, s_battery_history, s_battery_count, 0, 100);
+                graph_set_icon(layer, prv_battery_icon(state.charge_percent));
+                {
+                    char buf[8];
+                    snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
+                    graph_set_label_text(layer, buf);
+                }
                 break;
             }
             case COMPLICATION_MINIVIEW: {

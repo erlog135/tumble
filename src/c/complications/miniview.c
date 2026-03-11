@@ -56,10 +56,11 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
       dot_length, BORDER_DOT_WIDTH), 0, GCornerNone); /* W */
 }
 
-static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint center) {
+static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint center,
+                                      GCompOp comp_op) {
   GSize sz = gbitmap_get_bounds(bitmap).size;
   GRect rect = GRect(center.x - sz.w / 2, center.y - sz.h / 2, sz.w, sz.h);
-  graphics_context_set_compositing_mode(ctx, GCompOpSet);
+  graphics_context_set_compositing_mode(ctx, comp_op);
   graphics_draw_bitmap_in_rect(ctx, bitmap, rect);
 }
 
@@ -90,7 +91,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         // Place icon in upper half, vertically centered between border and midpoint
         int16_t icon_y = MINIVIEW_BORDER_SIZE + (center.y - MINIVIEW_BORDER_SIZE - sz.h) / 2;
         GPoint icon_center = GPoint(center.x, icon_y + sz.h / 2);
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center);
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
       }
       graphics_context_set_text_color(ctx, GColorBlack);
       graphics_draw_text(ctx, data->small_text, data->config.small_font,
@@ -101,7 +102,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
 
     case MINIVIEW_MODE_ICON_CENTER:
       if (data->icon_bitmap) {
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center);
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center, GCompOpAssignInverted);
       }
       break;
 
@@ -146,7 +147,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
           center.x + data->config.icon_offset.x,
           center.y + data->config.icon_offset.y
         );
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_pos);
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_pos, GCompOpSet);
       }
       break;
     }
@@ -157,7 +158,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         int16_t offsets_y[3] = { -spread, 0, spread };
         for (int i = 0; i < 3; i++) {
           GPoint icon_center = GPoint(center.x, center.y + offsets_y[i]);
-          prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center);
+          prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
         }
       }
       break;
@@ -197,6 +198,18 @@ void miniview_set_small_text(Layer *layer, const char *text) {
   MiniviewData *data = layer_get_data(layer);
   strncpy(data->small_text, text, sizeof(data->small_text) - 1);
   data->small_text[sizeof(data->small_text) - 1] = '\0';
+  layer_mark_dirty(layer);
+}
+
+void miniview_set_icon_angle(Layer *layer, int32_t angle) {
+  MiniviewData *data = layer_get_data(layer);
+  GRect bounds = layer_get_bounds(layer);
+  uint16_t radius = bounds.size.w / 2;
+  int16_t dot_ring_radius = (int16_t)(radius - MINIVIEW_BORDER_SIZE - 4);
+  data->config.icon_offset = GPoint(
+    (int16_t)(sin_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO),
+    -(int16_t)(cos_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO)
+  );
   layer_mark_dirty(layer);
 }
 

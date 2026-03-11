@@ -2,6 +2,26 @@
 #include "../complications/graph.h"
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
+#include "../settings.h"
+
+static uint32_t prv_icon_for_graph_option(uint8_t option) {
+    (void)option;
+    return RESOURCE_ID_ICON_STEPS;
+}
+
+static uint32_t prv_icon_for_miniview_option(uint8_t option) {
+    switch (option) {
+        case MINIVIEW_OPTION_CALORIES: return RESOURCE_ID_ICON_CALORIES;
+        default:                       return RESOURCE_ID_ICON_STEPS;
+    }
+}
+
+static uint32_t prv_icon_for_bottom_option(uint8_t option) {
+    switch (option) {
+        case BOTTOM_OPTION_CALORIES: return RESOURCE_ID_ICON_CALORIES;
+        default:                     return RESOURCE_ID_ICON_STEPS;
+    }
+}
 
 typedef struct {
     bool active;
@@ -43,18 +63,8 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
 
     switch (slot) {
         case COMPLICATION_GRAPH: {
-            const char *label;
-            GraphStyle style;
-            switch (option) {
-                case GRAPH_OPTION_HEART_RATE:
-                    label = "HR";
-                    style = GRAPH_STYLE_LINE;
-                    break;
-                default:
-                    label = "STEPS";
-                    style = GRAPH_STYLE_BARS;
-                    break;
-            }
+            GraphStyle style = (option == GRAPH_OPTION_HEART_RATE)
+                ? GRAPH_STYLE_LINE : GRAPH_STYLE_BARS;
             layer = graph_create(layout->graph_layer_bounds,
                                  layout->graph_plot_bounds, (GraphConfig) {
                 .style = style,
@@ -62,8 +72,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .v_markers = 3,
                 .top_lip = true,
                 .label_font = font_20,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
-                .label_text = label,
+                .icon_resource_id = prv_icon_for_graph_option(option),
             });
             break;
         }
@@ -74,7 +83,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .small_text_bounds = layout->miniview_small_text_bounds,
                 .tiny_font = font_20,
                 .small_font = font_28,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
+                .icon_resource_id = prv_icon_for_miniview_option(option),
             });
             miniview_set_small_text(layer, "--");
             break;
@@ -89,7 +98,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .mode = BOTTOM_MODE_ICON_TEXT,
                 .align = align,
                 .font = font_20,
-                .icon_resource_id = RESOURCE_ID_ICON_STEPS,
+                .icon_resource_id = prv_icon_for_bottom_option(option),
             });
             bottom_complication_set_text(layer, "--");
             break;
@@ -146,6 +155,23 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
     }
 
     graph_set_values(layer, values, count, 0, max_val);
+
+    {
+        char buf[GRAPH_LABEL_MAX];
+        buf[0] = '\0';
+        if (option == GRAPH_OPTION_HEART_RATE) {
+            HealthValue hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
+            if (hr > 0) snprintf(buf, sizeof(buf), "%d bpm", (int)hr);
+        } else {
+            HealthValue steps = health_service_sum_today(HealthMetricStepCount);
+            if (steps >= 1000)
+                snprintf(buf, sizeof(buf), "%d,%03d",
+                         (int)(steps / 1000), (int)(steps % 1000));
+            else if (steps > 0)
+                snprintf(buf, sizeof(buf), "%d", (int)steps);
+        }
+        graph_set_label_text(layer, buf[0] ? buf : NULL);
+    }
     free(minute_data);
 #else
     (void)layer;

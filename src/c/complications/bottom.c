@@ -72,6 +72,17 @@ Layer *bottom_complication_create(GRect bounds, BottomConfig config) {
   return layer;
 }
 
+void bottom_complication_set_icon(Layer *layer, uint32_t resource_id) {
+  BottomData *data = layer_get_data(layer);
+  if (data->icon_bitmap) {
+    gbitmap_destroy(data->icon_bitmap);
+  }
+  data->icon_bitmap = (resource_id != 0)
+    ? gbitmap_create_with_resource(resource_id)
+    : NULL;
+  layer_mark_dirty(layer);
+}
+
 void bottom_complication_set_text(Layer *layer, const char *text) {
   BottomData *data = layer_get_data(layer);
   strncpy(data->text, text, BOTTOM_TEXT_MAX_LEN - 1);
