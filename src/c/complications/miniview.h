@@ -29,4 +29,5 @@ Layer *miniview_create(GRect bounds, MiniviewConfig config);
 void miniview_set_tiny_text(Layer *layer, const char *text);
 void miniview_set_small_text(Layer *layer, const char *text);
 void miniview_set_icon_angle(Layer *layer, int32_t angle);
+void miniview_set_icon_resource_id(Layer *layer, uint32_t resource_id);
 void miniview_destroy(Layer *layer);

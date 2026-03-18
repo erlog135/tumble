@@ -23,16 +23,24 @@ static void update_time(void) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
     update_time();
+#ifdef TEST_SUN_CLOCK_SECONDS
+    providers_on_minute_tick(tick_time);
+#else
     if (units_changed & MINUTE_UNIT) {
         providers_on_minute_tick(tick_time);
     }
+#endif
 }
 
 static void update_tick_subscription(void) {
+#ifdef TEST_SUN_CLOCK_SECONDS
+    tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+#else
     ClaySettings *cfg = settings_get();
     TimeUnits units = (cfg->seconds_option != SECONDS_OPTION_ALWAYS_OFF)
         ? SECOND_UNIT : MINUTE_UNIT;
     tick_timer_service_subscribe(units, tick_handler);
+#endif
 }
 
 #if DRAW_DEBUG_RECTANGLES
@@ -101,6 +109,16 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     Tuple *weather_t = dict_find(iter, MESSAGE_KEY_WEATHER_TEMPERATURE);
     if (weather_t) {
         providers_on_weather_data(iter);
+        return;
+    }
+
+    if (dict_find(iter, MESSAGE_KEY_WEATHER_SUN_RISE_SET)) {
+        providers_on_solar_data(iter);
+        return;
+    }
+
+    if (dict_find(iter, MESSAGE_KEY_WEATHER_MOON_PHASE)) {
+        providers_on_lunar_data(iter);
         return;
     }
 }

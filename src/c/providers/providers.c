@@ -3,7 +3,7 @@
 #include "health_provider.h"
 #include "weather_provider.h"
 #include "battery_provider.h"
-#include "sun_provider.h"
+#include "sun_moon_provider.h"
 #include "../complications/graph.h"
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
@@ -93,7 +93,7 @@ static void prv_activate(ProviderId id, ComplicationSlot slot, uint8_t option) {
         case PROVIDER_HEALTH:  health_provider_activate(slot, option);  break;
         case PROVIDER_WEATHER: weather_provider_activate(slot, option); break;
         case PROVIDER_BATTERY: battery_provider_activate(slot, option); break;
-        case PROVIDER_SUN:     sun_provider_activate(slot, option);     break;
+        case PROVIDER_SUN:     sun_moon_provider_activate(slot, option);     break;
         default: break;
     }
 }
@@ -104,7 +104,7 @@ static void prv_deactivate(ProviderId id, ComplicationSlot slot) {
         case PROVIDER_HEALTH:  health_provider_deactivate(slot);  break;
         case PROVIDER_WEATHER: weather_provider_deactivate(slot); break;
         case PROVIDER_BATTERY: battery_provider_deactivate(slot); break;
-        case PROVIDER_SUN:     sun_provider_deactivate(slot);     break;
+        case PROVIDER_SUN:     sun_moon_provider_deactivate(slot);     break;
         default: break;
     }
 }
@@ -146,7 +146,7 @@ void providers_init(Layer *window_layer, Layout *layout,
     health_provider_init();
     weather_provider_init();
     battery_provider_init();
-    sun_provider_init();
+    sun_moon_provider_init();
 }
 
 void providers_apply_settings(void) {
@@ -201,12 +201,13 @@ void providers_on_minute_tick(struct tm *tick_time) {
     if (has[PROVIDER_HEALTH])  health_provider_tick(tick_time);
     if (has[PROVIDER_WEATHER]) weather_provider_tick(tick_time);
     if (has[PROVIDER_BATTERY]) battery_provider_tick(tick_time);
-    if (has[PROVIDER_SUN])     sun_provider_tick(tick_time);
+    if (has[PROVIDER_SUN])     sun_moon_provider_tick(tick_time);
 }
 
 void providers_on_weather_data(DictionaryIterator *iter) {
     weather_provider_on_data(iter);
-    sun_provider_on_data(iter);
+    sun_moon_provider_on_solar_data(iter);
+    sun_moon_provider_on_lunar_data(iter);
 
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
@@ -217,7 +218,27 @@ void providers_on_weather_data(DictionaryIterator *iter) {
         if (s_slot_owner[i] == PROVIDER_SUN) has_sun = true;
     }
     if (has_weather) weather_provider_tick(t);
-    if (has_sun) sun_provider_tick(t);
+    if (has_sun) sun_moon_provider_tick(t);
+}
+
+static void prv_tick_sun_if_active(void) {
+    for (int i = 0; i < COMPLICATION_COUNT; i++) {
+        if (s_slot_owner[i] == PROVIDER_SUN) {
+            time_t now = time(NULL);
+            sun_moon_provider_tick(localtime(&now));
+            return;
+        }
+    }
+}
+
+void providers_on_solar_data(DictionaryIterator *iter) {
+    sun_moon_provider_on_solar_data(iter);
+    prv_tick_sun_if_active();
+}
+
+void providers_on_lunar_data(DictionaryIterator *iter) {
+    sun_moon_provider_on_lunar_data(iter);
+    prv_tick_sun_if_active();
 }
 
 void providers_deinit(void) {
@@ -233,5 +254,5 @@ void providers_deinit(void) {
     health_provider_deinit();
     weather_provider_deinit();
     battery_provider_deinit();
-    sun_provider_deinit();
+    sun_moon_provider_deinit();
 }

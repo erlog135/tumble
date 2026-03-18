@@ -177,6 +177,46 @@
         },
         {
           "type": "bitmap",
+          "name": "ICON_MOON_NEW",
+          "file": "icons/moon/New.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_WAXING_CRESCENT",
+          "file": "icons/moon/WaxingCrescent.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_FIRST_QUARTER",
+          "file": "icons/moon/FirstQuarter.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_WAXING_GIBBOUS",
+          "file": "icons/moon/WaxingGibbous.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_FULL",
+          "file": "icons/moon/Full.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_WANING_GIBBOUS",
+          "file": "icons/moon/WaningGibbous.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_LAST_QUARTER",
+          "file": "icons/moon/LastQuarter.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_MOON_WANING_CRESCENT",
+          "file": "icons/moon/WaningCrescent.png"
+        },
+        {
+          "type": "bitmap",
           "name": "SHEET_GLYPHS_52",
           "file": "fonts/bitmaps/BebasNeue52.png"
         }

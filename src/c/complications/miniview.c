@@ -11,12 +11,14 @@ typedef struct {
 #define BORDER_ARC_DEGREES 80
 #define BORDER_DOT_WIDTH 3
 #define BORDER_DECORATION_INNER_MARGIN 3
+#define DOT_RING_INSET 7  // inset from inner_radius to the centre of the dot/icon ring
 
 static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius) {
-  graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_circle(ctx, center, radius);
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
+  graphics_context_set_stroke_width(ctx, MINIVIEW_BORDER_SIZE);
+  graphics_draw_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE / 2);
 }
 
 static void prv_draw_border_decoration(GContext *ctx, GPoint center,
@@ -71,8 +73,10 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   uint16_t radius = bounds.size.w / 2;
   uint16_t inner_radius = radius - MINIVIEW_BORDER_SIZE;
 
+  graphics_context_set_antialiased(ctx, false);
   prv_draw_background(ctx, center, radius);
   prv_draw_border_decoration(ctx, center, radius, inner_radius);
+  graphics_context_set_antialiased(ctx, true);
 
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:
@@ -107,7 +111,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
       break;
 
     case MINIVIEW_MODE_CLOCK_DOTS: {
-      int16_t dot_ring_radius = inner_radius - 4;
+      int16_t dot_ring_radius = inner_radius - DOT_RING_INSET;
 
       // Fill bottom half with black. In Pebble's system 0°=top, clockwise,
       // so the bottom half (y > center) runs from 90° to 270°.
@@ -201,11 +205,24 @@ void miniview_set_small_text(Layer *layer, const char *text) {
   layer_mark_dirty(layer);
 }
 
+void miniview_set_icon_resource_id(Layer *layer, uint32_t resource_id) {
+  MiniviewData *data = layer_get_data(layer);
+  if (data->icon_bitmap) {
+    gbitmap_destroy(data->icon_bitmap);
+    data->icon_bitmap = NULL;
+  }
+  if (resource_id != 0) {
+    data->icon_bitmap = gbitmap_create_with_resource(resource_id);
+    data->config.icon_resource_id = resource_id;
+  }
+  layer_mark_dirty(layer);
+}
+
 void miniview_set_icon_angle(Layer *layer, int32_t angle) {
   MiniviewData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
   uint16_t radius = bounds.size.w / 2;
-  int16_t dot_ring_radius = (int16_t)(radius - MINIVIEW_BORDER_SIZE - 4);
+  int16_t dot_ring_radius = (int16_t)(radius - MINIVIEW_BORDER_SIZE - DOT_RING_INSET);
   data->config.icon_offset = GPoint(
     (int16_t)(sin_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO),
     -(int16_t)(cos_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO)

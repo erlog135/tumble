@@ -1,4 +1,4 @@
-#include "sun_provider.h"
+#include "sun_moon_provider.h"
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
 #include <time.h>
@@ -12,14 +12,16 @@ static SlotState s_slots[COMPLICATION_COUNT];
 static int16_t s_sunrise_min;
 static int16_t s_sunset_min;
 static int16_t s_moon_phase;
-static bool s_has_data;
+static bool s_has_solar_data;
+static bool s_has_lunar_data;
 
-void sun_provider_init(void) {
+void sun_moon_provider_init(void) {
     memset(s_slots, 0, sizeof(s_slots));
-    s_has_data = false;
+    s_has_solar_data = false;
+    s_has_lunar_data = false;
 }
 
-void sun_provider_activate(ComplicationSlot slot, uint8_t option) {
+void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
     s_slots[slot].active = true;
     s_slots[slot].option = option;
 
@@ -91,9 +93,11 @@ void sun_provider_activate(ComplicationSlot slot, uint8_t option) {
     }
 }
 
-void sun_provider_deactivate(ComplicationSlot slot) {
+void sun_moon_provider_deactivate(ComplicationSlot slot) {
     s_slots[slot].active = false;
 }
+
+// ── Solar helpers ──────────────────────────────────────────────────────────
 
 static void prv_format_sun_time(char *buf, size_t size, int16_t total_minutes) {
     int h = total_minutes / 60;
@@ -109,6 +113,10 @@ static void prv_format_sun_time(char *buf, size_t size, int16_t total_minutes) {
 //   Day   (sunrise→sunset):        9 o'clock (270°) → 12 (0°) → 3 (90°)
 //   Night (sunset→next sunrise):   3 o'clock (90°)  → 6 (180°) → 9 (270°)
 static int32_t prv_sun_trig_angle(struct tm *tick_time) {
+#ifdef TEST_SUN_CLOCK_SECONDS
+    // Test mode: full 360° revolution over 60 seconds
+    return DEG_TO_TRIGANGLE(tick_time->tm_sec * 360 / 60);
+#else
     int16_t current_min = (int16_t)(tick_time->tm_hour * 60 + tick_time->tm_min);
     int16_t total_day = s_sunset_min - s_sunrise_min;
     int32_t angle_deg;
@@ -124,74 +132,109 @@ static int32_t prv_sun_trig_angle(struct tm *tick_time) {
     }
 
     return DEG_TO_TRIGANGLE(angle_deg % 360);
+#endif
 }
 
-void sun_provider_tick(struct tm *tick_time) {
-    if (!s_has_data) return;
+static void prv_tick_solar(int slot, Layer *layer, struct tm *tick_time) {
+    uint8_t option = s_slots[slot].option;
 
+    if (option == MINIVIEW_OPTION_SUNRISE_SUNSET && slot == COMPLICATION_MINIVIEW) {
+        bool past_noon = tick_time->tm_hour >= 12;
+        char buf[8];
+        prv_format_sun_time(buf, sizeof(buf), past_noon ? s_sunset_min : s_sunrise_min);
+        miniview_set_tiny_text(layer, past_noon ? "SET" : "RISE");
+        miniview_set_small_text(layer, buf);
+
+    } else if (option == MINIVIEW_OPTION_SUN_POSITION && slot == COMPLICATION_MINIVIEW) {
+        miniview_set_icon_angle(layer, prv_sun_trig_angle(tick_time));
+
+    } else if (option == BOTTOM_OPTION_SUNRISE_SUNSET &&
+               (slot == COMPLICATION_BOTTOM_LEFT || slot == COMPLICATION_BOTTOM_RIGHT)) {
+        int16_t current_min = tick_time->tm_hour * 60 + tick_time->tm_min;
+        bool show_sunset;
+        if (s_sunrise_min <= s_sunset_min) {
+            show_sunset = (current_min >= s_sunrise_min && current_min < s_sunset_min);
+        } else {
+            // Sunrise after sunset (rare, e.g., polar regions)
+            show_sunset = (current_min >= s_sunrise_min || current_min < s_sunset_min);
+        }
+        char buf[8];
+        if (show_sunset) {
+            prv_format_sun_time(buf, sizeof(buf), s_sunset_min);
+            bottom_complication_set_icon(layer, RESOURCE_ID_ICON_SUNSET);
+        } else {
+            prv_format_sun_time(buf, sizeof(buf), s_sunrise_min);
+            bottom_complication_set_icon(layer, RESOURCE_ID_ICON_SUNRISE);
+        }
+        bottom_complication_set_text(layer, buf);
+    }
+}
+
+// ── Lunar helpers ──────────────────────────────────────────────────────────
+
+static const uint32_t s_moon_icons[8] = {
+    RESOURCE_ID_ICON_MOON_NEW,
+    RESOURCE_ID_ICON_MOON_WAXING_CRESCENT,
+    RESOURCE_ID_ICON_MOON_FIRST_QUARTER,
+    RESOURCE_ID_ICON_MOON_WAXING_GIBBOUS,
+    RESOURCE_ID_ICON_MOON_FULL,
+    RESOURCE_ID_ICON_MOON_WANING_GIBBOUS,
+    RESOURCE_ID_ICON_MOON_LAST_QUARTER,
+    RESOURCE_ID_ICON_MOON_WANING_CRESCENT,
+};
+
+static void prv_tick_lunar(int slot, Layer *layer) {
+    if (slot == COMPLICATION_MINIVIEW &&
+        s_slots[slot].option == MINIVIEW_OPTION_MOON_PHASE) {
+        uint8_t phase = (uint8_t)(s_moon_phase & 0x07);
+        miniview_set_icon_resource_id(layer, s_moon_icons[phase]);
+    }
+}
+
+// ── Tick ──────────────────────────────────────────────────────────────────
+
+void sun_moon_provider_tick(struct tm *tick_time) {
     for (int i = 0; i < COMPLICATION_COUNT; i++) {
         if (!s_slots[i].active) continue;
         Layer *layer = providers_get_layer(i);
         if (!layer) continue;
 
-        switch (i) {
-            case COMPLICATION_MINIVIEW: {
-                if (s_slots[i].option == MINIVIEW_OPTION_SUNRISE_SUNSET) {
-                    bool past_noon = tick_time->tm_hour >= 12;
-                    char buf[8];
-                    prv_format_sun_time(buf, sizeof(buf),
-                                        past_noon ? s_sunset_min : s_sunrise_min);
-                    miniview_set_tiny_text(layer, past_noon ? "SET" : "RISE");
-                    miniview_set_small_text(layer, buf);
-                } else if (s_slots[i].option == MINIVIEW_OPTION_SUN_POSITION) {
-                    miniview_set_icon_angle(layer, prv_sun_trig_angle(tick_time));
-                }
-                break;
-            }
-            case COMPLICATION_BOTTOM_LEFT:
-            case COMPLICATION_BOTTOM_RIGHT: {
-                if (s_slots[i].option == BOTTOM_OPTION_SUNRISE_SUNSET) {
-                    int16_t current_min = tick_time->tm_hour * 60 + tick_time->tm_min;
-                    bool show_sunset;
-                    if (s_sunrise_min <= s_sunset_min) {
-                        // Normal: sunrise before sunset (typical case)
-                        show_sunset = (current_min >= s_sunrise_min && current_min < s_sunset_min);
-                    } else {
-                        // Sunrise after sunset (rare, e.g., polar)
-                        show_sunset = (current_min >= s_sunrise_min || current_min < s_sunset_min);
-                    }
+        uint8_t option = s_slots[i].option;
+        bool is_lunar = (option == MINIVIEW_OPTION_MOON_PHASE);
 
-                    char buf[8];
-                    if (show_sunset) {
-                        prv_format_sun_time(buf, sizeof(buf), s_sunset_min);
-                        bottom_complication_set_icon(layer, RESOURCE_ID_ICON_SUNSET);
-                    } else {
-                        prv_format_sun_time(buf, sizeof(buf), s_sunrise_min);
-                        bottom_complication_set_icon(layer, RESOURCE_ID_ICON_SUNRISE);
-                    }
-                    bottom_complication_set_text(layer, buf);
-                }
-                break;
-            }
-            default:
-                break;
+#ifdef TEST_SUN_CLOCK_SECONDS
+        bool has_solar = s_has_solar_data || (option == MINIVIEW_OPTION_SUN_POSITION);
+#else
+        bool has_solar = s_has_solar_data;
+#endif
+        if (!is_lunar && has_solar) {
+            prv_tick_solar(i, layer, tick_time);
+        } else if (is_lunar && s_has_lunar_data) {
+            prv_tick_lunar(i, layer);
         }
     }
 }
 
-void sun_provider_on_data(DictionaryIterator *iter) {
-    Tuple *t;
-    if ((t = dict_find(iter, MESSAGE_KEY_WEATHER_SUN_RISE_SET))) {
+// ── Data ingress ──────────────────────────────────────────────────────────
+
+void sun_moon_provider_on_solar_data(DictionaryIterator *iter) {
+    Tuple *t = dict_find(iter, MESSAGE_KEY_WEATHER_SUN_RISE_SET);
+    if (t) {
         int32_t packed = t->value->int32;
         s_sunrise_min = (int16_t)((packed >> 16) & 0xFFFF);
         s_sunset_min  = (int16_t)(packed & 0xFFFF);
+        s_has_solar_data = true;
     }
-    if ((t = dict_find(iter, MESSAGE_KEY_WEATHER_MOON_PHASE)))
-        s_moon_phase = (int16_t)t->value->int32;
-
-    s_has_data = true;
 }
 
-void sun_provider_deinit(void) {
+void sun_moon_provider_on_lunar_data(DictionaryIterator *iter) {
+    Tuple *t = dict_find(iter, MESSAGE_KEY_WEATHER_MOON_PHASE);
+    if (t) {
+        s_moon_phase = (int16_t)t->value->int32;
+        s_has_lunar_data = true;
+    }
+}
+
+void sun_moon_provider_deinit(void) {
     memset(s_slots, 0, sizeof(s_slots));
 }

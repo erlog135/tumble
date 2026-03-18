@@ -28,6 +28,8 @@ typedef struct {
     uint8_t option;
 } SlotState;
 
+static void prv_update_graph(Layer *layer, uint8_t option);
+
 static SlotState s_slots[COMPLICATION_COUNT];
 static bool s_subscribed;
 
@@ -74,6 +76,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .label_font = font_20,
                 .icon_resource_id = prv_icon_for_graph_option(option),
             });
+            prv_update_graph(layer, option);
             break;
         }
         case COMPLICATION_MINIVIEW: {
@@ -85,7 +88,10 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .small_font = font_28,
                 .icon_resource_id = prv_icon_for_miniview_option(option),
             });
-            miniview_set_small_text(layer, "--");
+            const char *miniview_init = (option == MINIVIEW_OPTION_CALORIES) ? "----"
+                                     : (option == MINIVIEW_OPTION_STEPS)    ? "-----"
+                                     : "--";
+            miniview_set_small_text(layer, miniview_init);
             break;
         }
         case COMPLICATION_BOTTOM_LEFT:
@@ -100,7 +106,10 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
                 .font = font_20,
                 .icon_resource_id = prv_icon_for_bottom_option(option),
             });
-            bottom_complication_set_text(layer, "--");
+            const char *bottom_init = (option == BOTTOM_OPTION_CALORIES) ? "----"
+                                    : (option == BOTTOM_OPTION_STEPS)    ? "-----"
+                                    : "--";
+            bottom_complication_set_text(layer, bottom_init);
             break;
         }
         default:
@@ -164,24 +173,24 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
             if (hr > 0) snprintf(buf, sizeof(buf), "%d bpm", (int)hr);
         } else {
             HealthValue steps = health_service_sum_today(HealthMetricStepCount);
-            if (steps >= 1000)
-                snprintf(buf, sizeof(buf), "%d,%03d",
-                         (int)(steps / 1000), (int)(steps % 1000));
-            else if (steps > 0)
+            if (steps > 0)
                 snprintf(buf, sizeof(buf), "%d", (int)steps);
         }
-        graph_set_label_text(layer, buf[0] ? buf : NULL);
+        const char *dash = (option == GRAPH_OPTION_HEART_RATE) ? "--" : "-----";
+        graph_set_label_text(layer, buf[0] ? buf : dash);
     }
     free(minute_data);
 #else
-    (void)layer;
-    (void)option;
+    const char *dash = (option == GRAPH_OPTION_HEART_RATE) ? "--" : "-----";
+    graph_set_label_text(layer, dash);
 #endif
 }
 
 static void prv_update_miniview(Layer *layer, uint8_t option) {
     char buf[12];
-    strncpy(buf, "--", sizeof(buf));
+    if (option == MINIVIEW_OPTION_CALORIES)      strncpy(buf, "----",  sizeof(buf));
+    else if (option == MINIVIEW_OPTION_STEPS)    strncpy(buf, "-----", sizeof(buf));
+    else                                         strncpy(buf, "--",    sizeof(buf));
 
 #if defined(PBL_HEALTH)
     switch (option) {
@@ -216,16 +225,15 @@ static void prv_update_miniview(Layer *layer, uint8_t option) {
 
 static void prv_update_bottom(Layer *layer, uint8_t option) {
     char buf[20];
-    strncpy(buf, "--", sizeof(buf));
+    if (option == BOTTOM_OPTION_CALORIES)      strncpy(buf, "----",  sizeof(buf));
+    else if (option == BOTTOM_OPTION_STEPS)    strncpy(buf, "-----", sizeof(buf));
+    else                                       strncpy(buf, "--",    sizeof(buf));
 
 #if defined(PBL_HEALTH)
     switch (option) {
         case BOTTOM_OPTION_STEPS: {
             HealthValue steps = health_service_sum_today(HealthMetricStepCount);
-            if (steps >= 1000)
-                snprintf(buf, sizeof(buf), "%d,%03d",
-                         (int)(steps / 1000), (int)(steps % 1000));
-            else
+            if (steps > 0)
                 snprintf(buf, sizeof(buf), "%d", (int)steps);
             break;
         }
@@ -237,7 +245,7 @@ static void prv_update_bottom(Layer *layer, uint8_t option) {
         }
         case BOTTOM_OPTION_CALORIES: {
             HealthValue cal = health_service_sum_today(HealthMetricActiveKCalories);
-            snprintf(buf, sizeof(buf), "%d cal", (int)cal);
+            if (cal > 0) snprintf(buf, sizeof(buf), "%d cal", (int)cal);
             break;
         }
         default:

@@ -3,6 +3,9 @@
 #include "../layout.h"
 #include "../settings.h"
 
+// Uncomment to test sun-clock: full revolution driven by seconds (one per minute)
+#define TEST_SUN_CLOCK_SECONDS
+
 typedef enum {
     COMPLICATION_GRAPH = 0,
     COMPLICATION_MINIVIEW,
@@ -15,6 +18,8 @@ void providers_init(Layer *window_layer, Layout *layout, GFont font_20, GFont fo
 void providers_apply_settings(void);
 void providers_on_minute_tick(struct tm *tick_time);
 void providers_on_weather_data(DictionaryIterator *iter);
+void providers_on_solar_data(DictionaryIterator *iter);
+void providers_on_lunar_data(DictionaryIterator *iter);
 void providers_deinit(void);
 
 Layer *providers_get_window_layer(void);
