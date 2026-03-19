@@ -5,8 +5,8 @@
 #define GRAPH_MARKER_SIZE 3
 // Gap between the header icon and label text (pixels)
 #define GRAPH_HEADER_ICON_TEXT_GAP 4
-// Maximum number of data values the graph can hold
-#define GRAPH_MAX_VALUES 48
+// Maximum number of data values the graph can hold (matches HISTORY_24H_LEN / HISTORY_4H_LEN)
+#define GRAPH_MAX_VALUES 24
 // Maximum length of dynamic label text in header
 #define GRAPH_LABEL_MAX 24
 
@@ -27,8 +27,10 @@ typedef struct {
 } GraphConfig;
 
 Layer *graph_create(GRect bounds, GRect plot_bounds, GraphConfig config);
-void graph_set_values(Layer *layer, const int16_t *values, uint8_t count,
-                      int16_t min_val, int16_t max_val);
+// values[0] is the most-recent sample; values[count-1] is the oldest.
+// Negative values are treated as invalid (no reading available).
+// Valid values must be in [0, 127].  Min/max are computed internally.
+void graph_set_values(Layer *layer, const int8_t *values, uint8_t count);
 void graph_set_label_text(Layer *layer, const char *text);
 void graph_set_icon(Layer *layer, uint32_t resource_id);
 void graph_destroy(Layer *layer);

@@ -188,6 +188,12 @@ void providers_apply_settings(void) {
 }
 
 void providers_on_minute_tick(struct tm *tick_time) {
+    // Always record history regardless of which slots are active so that data is
+    // available the moment a graph complication is enabled.
+    battery_provider_record_history(tick_time);
+    health_provider_record_history(tick_time);
+    weather_provider_record_history(tick_time);
+
     bool has[PROVIDER_COUNT];
     memset(has, 0, sizeof(has));
 

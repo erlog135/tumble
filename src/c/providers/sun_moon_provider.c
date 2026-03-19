@@ -35,17 +35,20 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
     switch (slot) {
         case COMPLICATION_MINIVIEW: {
             switch (option) {
-                case MINIVIEW_OPTION_SUNRISE_SUNSET:
+                case MINIVIEW_OPTION_SUNRISE_SUNSET: {
+                    time_t now = time(NULL);
+                    struct tm *now_tm = localtime(&now);
+                    uint32_t init_icon = (now_tm->tm_hour >= 12)
+                        ? RESOURCE_ID_ICON_SUNSET : RESOURCE_ID_ICON_SUNRISE;
                     layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
-                        .mode = MINIVIEW_MODE_TEXT_STACK,
-                        .tiny_text_bounds = layout->miniview_tiny_text_bounds,
+                        .mode = MINIVIEW_MODE_ICON_TEXT,
+                        .icon_resource_id = init_icon,
                         .small_text_bounds = layout->miniview_small_text_bounds,
-                        .tiny_font = font_20,
-                        .small_font = font_28,
+                        .small_font = font_20,
                     });
-                    miniview_set_tiny_text(layer, "SUN");
                     miniview_set_small_text(layer, "--:--");
                     break;
+                }
                 case MINIVIEW_OPTION_SUN_POSITION:
                     layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
                         .mode = MINIVIEW_MODE_CLOCK_DOTS,
@@ -139,10 +142,21 @@ static void prv_tick_solar(int slot, Layer *layer, struct tm *tick_time) {
     uint8_t option = s_slots[slot].option;
 
     if (option == MINIVIEW_OPTION_SUNRISE_SUNSET && slot == COMPLICATION_MINIVIEW) {
-        bool past_noon = tick_time->tm_hour >= 12;
+        int16_t current_min = tick_time->tm_hour * 60 + tick_time->tm_min;
+        bool show_sunset;
+        if (s_sunrise_min <= s_sunset_min) {
+            show_sunset = (current_min >= s_sunrise_min && current_min < s_sunset_min);
+        } else {
+            show_sunset = (current_min >= s_sunrise_min || current_min < s_sunset_min);
+        }
         char buf[8];
-        prv_format_sun_time(buf, sizeof(buf), past_noon ? s_sunset_min : s_sunrise_min);
-        miniview_set_tiny_text(layer, past_noon ? "SET" : "RISE");
+        if (show_sunset) {
+            prv_format_sun_time(buf, sizeof(buf), s_sunset_min);
+            miniview_set_icon_resource_id(layer, RESOURCE_ID_ICON_SUNSET);
+        } else {
+            prv_format_sun_time(buf, sizeof(buf), s_sunrise_min);
+            miniview_set_icon_resource_id(layer, RESOURCE_ID_ICON_SUNRISE);
+        }
         miniview_set_small_text(layer, buf);
 
     } else if (option == MINIVIEW_OPTION_SUN_POSITION && slot == COMPLICATION_MINIVIEW) {
