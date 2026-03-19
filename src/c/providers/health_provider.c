@@ -6,17 +6,40 @@
 #include "../settings.h"
 
 #if defined(PBL_HEALTH)
-// Steps (cumulative daily total): 0–12 700 → 0–127  (1 unit ≈ 100 steps)
-// Stored as the running daily total at the time of each hourly sample.
+// Steps (per hour): 0–1270 → 0–127  (1 unit = 10 steps)
 static int8_t prv_scale_steps(int steps) {
   if (steps <= 0) return HISTORY_INVALID;
-  return (int8_t)(steps > 12700 ? 127 : steps / 100);
+  return (int8_t)(steps > 1270 ? 127 : steps / 10);
 }
 
 // Heart rate: 0–254 bpm → 0–127  (1 unit = 2 bpm).  0 bpm = no reading → invalid.
 static int8_t prv_scale_hr(int bpm) {
   if (bpm <= 0) return HISTORY_INVALID;
   return (int8_t)(bpm > 254 ? 127 : bpm / 2);
+}
+
+static void prv_build_steps_history(int8_t *out, uint8_t *out_count) {
+  time_t now = time(NULL);
+  for (int i = 0; i < HISTORY_24H_LEN; i++) {
+    time_t end   = now - (time_t)(i * 3600);
+    time_t start = end - 3600;
+    HealthValue v = health_service_sum(HealthMetricStepCount, start, end);
+    out[i] = prv_scale_steps((int)v);
+  }
+  *out_count = HISTORY_24H_LEN;
+}
+
+static void prv_build_hr_history(int8_t *out, uint8_t *out_count) {
+  time_t now = time(NULL);
+  for (int i = 0; i < HISTORY_4H_LEN; i++) {
+    time_t end   = now - (time_t)(i * 10 * 60);
+    time_t start = end - (10 * 60);
+    HealthValue avg = health_service_aggregate_averaged(
+        HealthMetricHeartRateBPM, start, end,
+        HealthAggregationAvg, HealthServiceTimeScopeOnce);
+    out[i] = prv_scale_hr((int)avg);
+  }
+  *out_count = HISTORY_4H_LEN;
 }
 #endif
 
@@ -44,17 +67,7 @@ typedef struct {
   uint8_t option;
 } SlotState;
 
-typedef struct {
-  int8_t  steps[HISTORY_24H_LEN]; // most-recent-first; hourly cumulative total
-  int8_t  hr[HISTORY_4H_LEN];     // most-recent-first; every 10 min
-  uint8_t steps_count;
-  uint8_t hr_count;
-  uint8_t last_hour;    // 0–23; 0xFF = never sampled
-  uint8_t last_10min;   // hour*6 + min/10, 0–143; 0xFF = never sampled
-} HealthHistory;
-
 static SlotState s_slots[COMPLICATION_COUNT];
-static HealthHistory s_history;
 #if defined(PBL_HEALTH)
 static bool s_subscribed;
 #endif
@@ -67,11 +80,16 @@ static void prv_health_handler(HealthEventType event, void *context) {
 #endif
 
 static void prv_update_graph(Layer *layer, uint8_t option) {
+  int8_t vals[HISTORY_24H_LEN];
+  uint8_t count = 0;
+#if defined(PBL_HEALTH)
   if (option == GRAPH_OPTION_HEART_RATE) {
-    graph_set_values(layer, s_history.hr, s_history.hr_count);
+    prv_build_hr_history(vals, &count);
   } else {
-    graph_set_values(layer, s_history.steps, s_history.steps_count);
+    prv_build_steps_history(vals, &count);
   }
+#endif
+  graph_set_values(layer, vals, count);
 
   char buf[GRAPH_LABEL_MAX];
   buf[0] = '\0';
@@ -93,10 +111,6 @@ void health_provider_init(void) {
 #if defined(PBL_HEALTH)
   s_subscribed = false;
 #endif
-  memset(&s_history, 0, sizeof(s_history));
-  s_history.last_hour  = 0xFF;
-  s_history.last_10min = 0xFF;
-  persist_read_data(PERSIST_KEY_HEALTH_HISTORY, &s_history, sizeof(s_history));
 }
 
 void health_provider_activate(ComplicationSlot slot, uint8_t option) {
@@ -188,34 +202,6 @@ void health_provider_deactivate(ComplicationSlot slot) {
     s_subscribed = false;
   }
 #endif
-}
-
-void health_provider_record_history(struct tm *t) {
-  // Hourly: record cumulative step total at the start of each new hour
-  uint8_t cur_hour = (uint8_t)t->tm_hour;
-  if (cur_hour != s_history.last_hour) {
-    int8_t scaled = HISTORY_INVALID;
-#if defined(PBL_HEALTH)
-    HealthValue steps = health_service_sum_today(HealthMetricStepCount);
-    scaled = prv_scale_steps((int)steps);
-#endif
-    history_push(s_history.steps, &s_history.steps_count, HISTORY_24H_LEN, scaled);
-    s_history.last_hour = cur_hour;
-    persist_write_data(PERSIST_KEY_HEALTH_HISTORY, &s_history, sizeof(s_history));
-  }
-
-  // Every 10 minutes: record heart rate
-  uint8_t cur_10min = (uint8_t)(t->tm_hour * 6 + t->tm_min / 10);
-  if (cur_10min != s_history.last_10min) {
-    int8_t scaled = HISTORY_INVALID;
-#if defined(PBL_HEALTH)
-    HealthValue hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
-    scaled = prv_scale_hr((int)hr);
-#endif
-    history_push(s_history.hr, &s_history.hr_count, HISTORY_4H_LEN, scaled);
-    s_history.last_10min = cur_10min;
-    persist_write_data(PERSIST_KEY_HEALTH_HISTORY, &s_history, sizeof(s_history));
-  }
 }
 
 static void prv_update_miniview(Layer *layer, uint8_t option) {

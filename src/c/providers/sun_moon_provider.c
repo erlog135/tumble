@@ -3,6 +3,9 @@
 #include "../complications/bottom.h"
 #include <time.h>
 
+#define PERSIST_KEY_SOLAR_DATA  0x5001
+#define PERSIST_KEY_LUNAR_DATA  0x5002
+
 typedef struct {
     bool active;
     uint8_t option;
@@ -17,8 +20,22 @@ static bool s_has_lunar_data;
 
 void sun_moon_provider_init(void) {
     memset(s_slots, 0, sizeof(s_slots));
-    s_has_solar_data = false;
-    s_has_lunar_data = false;
+
+    if (persist_exists(PERSIST_KEY_SOLAR_DATA)) {
+        int32_t packed = persist_read_int(PERSIST_KEY_SOLAR_DATA);
+        s_sunrise_min = (int16_t)((packed >> 16) & 0xFFFF);
+        s_sunset_min  = (int16_t)(packed & 0xFFFF);
+        s_has_solar_data = true;
+    } else {
+        s_has_solar_data = false;
+    }
+
+    if (persist_exists(PERSIST_KEY_LUNAR_DATA)) {
+        s_moon_phase = (int16_t)persist_read_int(PERSIST_KEY_LUNAR_DATA);
+        s_has_lunar_data = true;
+    } else {
+        s_has_lunar_data = false;
+    }
 }
 
 void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
@@ -238,6 +255,7 @@ void sun_moon_provider_on_solar_data(DictionaryIterator *iter) {
         s_sunrise_min = (int16_t)((packed >> 16) & 0xFFFF);
         s_sunset_min  = (int16_t)(packed & 0xFFFF);
         s_has_solar_data = true;
+        persist_write_int(PERSIST_KEY_SOLAR_DATA, packed);
     }
 }
 
@@ -246,6 +264,7 @@ void sun_moon_provider_on_lunar_data(DictionaryIterator *iter) {
     if (t) {
         s_moon_phase = (int16_t)t->value->int32;
         s_has_lunar_data = true;
+        persist_write_int(PERSIST_KEY_LUNAR_DATA, (int32_t)s_moon_phase);
     }
 }
 
