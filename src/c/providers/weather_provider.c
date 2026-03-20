@@ -29,6 +29,35 @@ static int8_t prv_scale_altitude(int16_t m) {
   return (int8_t)v;
 }
 
+static void prv_format_temperature(char *buf, size_t n, int16_t temp_f, uint8_t unit) {
+  if (unit == UNIT_TEMP_C) {
+    int16_t temp_c = (int16_t)((temp_f - 32) * 5 / 9);
+    snprintf(buf, n, "%d\u00b0", temp_c);
+  } else {
+    snprintf(buf, n, "%d\u00b0", temp_f);
+  }
+}
+
+static void prv_format_pressure(char *buf, size_t n, int16_t hpa, uint8_t unit) {
+  if (unit == UNIT_PRESSURE_HPA) {
+    snprintf(buf, n, "%d", hpa);
+  } else if (unit == UNIT_PRESSURE_INHG) {
+    int32_t hundredths = ((int32_t)hpa * 2953) / 1000;
+    snprintf(buf, n, "%d.%02d", (int)(hundredths / 100), (int)(hundredths % 100));
+  } else {
+    snprintf(buf, n, "%d", hpa);
+  }
+}
+
+static void prv_format_altitude(char *buf, size_t n, int16_t m, uint8_t unit) {
+  if (unit == UNIT_ALTITUDE_FT) {
+    int32_t ft = ((int32_t)m * 328) / 100;
+    snprintf(buf, n, "%d", (int)ft);
+  } else {
+    snprintf(buf, n, "%d", m);
+  }
+}
+
 static uint32_t prv_icon_for_graph_option(uint8_t option) {
   switch (option) {
     case GRAPH_OPTION_AIR_PRESSURE: return RESOURCE_ID_ICON_PRESSURE;
@@ -78,6 +107,16 @@ typedef struct {
   uint8_t last_hour;  // 0–23; 0xFF = never sampled
 } WeatherHistory;
 
+// Last received values. Restored on boot if less than one hour old.
+typedef struct {
+  int16_t temperature;
+  int16_t pressure;
+  int16_t pressure_trend;
+  int16_t altitude;
+  int16_t condition;
+  time_t  timestamp;  // 0 = never written
+} WeatherCache;
+
 static SlotState s_slots[COMPLICATION_COUNT];
 static int16_t s_temperature;
 static int16_t s_pressure;
@@ -116,19 +155,20 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
   }
   if (src) graph_set_values(layer, src, s_history.count);
 
-  char buf[12];
+  char buf[16];
   if (!s_has_data) {
     strncpy(buf, "--", sizeof(buf));
   } else {
+    ClaySettings *cfg = settings_get();
     switch (option) {
       case GRAPH_OPTION_AIR_PRESSURE:
-        snprintf(buf, sizeof(buf), "%d hPa", s_pressure);   break;
+        prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);    break;
       case GRAPH_OPTION_ALTITUDE:
-        snprintf(buf, sizeof(buf), "%d m",   s_altitude);   break;
+        prv_format_altitude(buf, sizeof(buf), s_altitude, cfg->unit_altitude);    break;
       case GRAPH_OPTION_TEMPERATURE:
-        snprintf(buf, sizeof(buf), "%d\u00b0", s_temperature); break;
+        prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);  break;
       default:
-        strncpy(buf, "--", sizeof(buf));                     break;
+        strncpy(buf, "--", sizeof(buf));                                           break;
     }
   }
   graph_set_label_text(layer, buf);
@@ -140,6 +180,19 @@ void weather_provider_init(void) {
   memset(&s_history, 0, sizeof(s_history));
   s_history.last_hour = 0xFF;
   persist_read_data(PERSIST_KEY_WEATHER_HISTORY, &s_history, sizeof(s_history));
+
+  WeatherCache cache;
+  memset(&cache, 0, sizeof(cache));
+  if (persist_read_data(PERSIST_KEY_WEATHER_CACHE, &cache, sizeof(cache)) > 0
+      && cache.timestamp != 0
+      && (time(NULL) - cache.timestamp) <= 3600) {
+    s_temperature   = cache.temperature;
+    s_pressure      = cache.pressure;
+    s_pressure_trend = cache.pressure_trend;
+    s_altitude      = cache.altitude;
+    s_condition     = cache.condition;
+    s_has_data      = true;
+  }
 }
 
 void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
@@ -233,19 +286,20 @@ void weather_provider_tick(struct tm *tick_time) {
         prv_update_graph(layer, s_slots[i].option);
         break;
       case COMPLICATION_MINIVIEW: {
-        char buf[12];
+        char buf[16];
         if (!s_has_data) {
           strncpy(buf, "--", sizeof(buf));
         } else {
+          ClaySettings *cfg = settings_get();
           switch (s_slots[i].option) {
             case MINIVIEW_OPTION_ALTITUDE:
-              snprintf(buf, sizeof(buf), "%d",   s_altitude);   break;
+              prv_format_altitude(buf, sizeof(buf), s_altitude, cfg->unit_altitude);      break;
             case MINIVIEW_OPTION_AIR_PRESSURE:
-              snprintf(buf, sizeof(buf), "%d",   s_pressure);   break;
+              prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
             case MINIVIEW_OPTION_WEATHER:
-              snprintf(buf, sizeof(buf), "%d",   s_temperature); break;
+              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);    break;
             default:
-              strncpy(buf, "--", sizeof(buf));                   break;
+              strncpy(buf, "--", sizeof(buf));                                            break;
           }
         }
         miniview_set_small_text(layer, buf);
@@ -257,19 +311,20 @@ void weather_provider_tick(struct tm *tick_time) {
         if (!s_has_data) {
           strncpy(buf, "--", sizeof(buf));
         } else {
+          ClaySettings *cfg = settings_get();
           switch (s_slots[i].option) {
             case BOTTOM_OPTION_ALTITUDE:
-              snprintf(buf, sizeof(buf), "%d m",   s_altitude);         break;
+              prv_format_altitude(buf, sizeof(buf), s_altitude, cfg->unit_altitude);      break;
             case BOTTOM_OPTION_AIR_PRESSURE:
-              snprintf(buf, sizeof(buf), "%d hPa", s_pressure);         break;
+              prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
             case BOTTOM_OPTION_PRESSURE_TREND:
-              snprintf(buf, sizeof(buf), "%+d",    s_pressure_trend);
+              snprintf(buf, sizeof(buf), "%+d", s_pressure_trend);
               bottom_complication_set_icon(layer, prv_pressure_trend_icon(s_pressure_trend));
               break;
             case BOTTOM_OPTION_TEMPERATURE:
-              snprintf(buf, sizeof(buf), "%d",     s_temperature);      break;
+              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);    break;
             default:
-              strncpy(buf, "--", sizeof(buf));                           break;
+              strncpy(buf, "--", sizeof(buf));                                            break;
           }
         }
         bottom_complication_set_text(layer, buf);
@@ -295,6 +350,16 @@ void weather_provider_on_data(DictionaryIterator *iter) {
     s_condition = (int16_t)t->value->int32;
 
   s_has_data = true;
+
+  WeatherCache cache = {
+    .temperature   = s_temperature,
+    .pressure      = s_pressure,
+    .pressure_trend = s_pressure_trend,
+    .altitude      = s_altitude,
+    .condition     = s_condition,
+    .timestamp     = time(NULL),
+  };
+  persist_write_data(PERSIST_KEY_WEATHER_CACHE, &cache, sizeof(cache));
 }
 
 void weather_provider_deinit(void) {

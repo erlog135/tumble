@@ -85,6 +85,16 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
             s->weather_option = (uint8_t)prv_tuple_int(t);
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_WEATHER_REFRESH_INTERVAL)))
             s->weather_refresh_interval = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_UNIT_TEMP)) && t->type == TUPLE_CSTRING)
+            s->unit_temp = (strcmp(t->value->cstring, "c") == 0) ? UNIT_TEMP_C : UNIT_TEMP_F;
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_UNIT_ALTITUDE)) && t->type == TUPLE_CSTRING)
+            s->unit_altitude = (strcmp(t->value->cstring, "m") == 0) ? UNIT_ALTITUDE_M : UNIT_ALTITUDE_FT;
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_UNIT_PRESSURE)) && t->type == TUPLE_CSTRING) {
+            const char *v = t->value->cstring;
+            if (strcmp(v, "hpa") == 0)        s->unit_pressure = UNIT_PRESSURE_HPA;
+            else if (strcmp(v, "inhg") == 0)  s->unit_pressure = UNIT_PRESSURE_INHG;
+            else                              s->unit_pressure = UNIT_PRESSURE_MB;
+        }
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_MINIVIEW_OPTION)))
             s->miniview_option = (uint8_t)prv_tuple_int(t);
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_GRAPH_OPTION)))

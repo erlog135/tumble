@@ -14,6 +14,7 @@
 #define PERSIST_KEY_BATTERY_HISTORY  10
 #define PERSIST_KEY_HEALTH_HISTORY   11
 #define PERSIST_KEY_WEATHER_HISTORY  12
+#define PERSIST_KEY_WEATHER_CACHE    13
 
 // Push a new sample into a most-recent-first ring buffer.
 // hist[0] will always be the newest value after the push.

@@ -7,6 +7,22 @@ typedef enum {
 } WeatherOption;
 
 typedef enum {
+    UNIT_TEMP_F = 0,
+    UNIT_TEMP_C = 1,
+} UnitTemp;
+
+typedef enum {
+    UNIT_ALTITUDE_FT = 0,
+    UNIT_ALTITUDE_M  = 1,
+} UnitAltitude;
+
+typedef enum {
+    UNIT_PRESSURE_MB   = 0,
+    UNIT_PRESSURE_HPA  = 1,
+    UNIT_PRESSURE_INHG = 2,
+} UnitPressure;
+
+typedef enum {
     MINIVIEW_OPTION_DATE_MONTH_DATE = 0,
     MINIVIEW_OPTION_DATE_DOW_DATE   = 1,
     MINIVIEW_OPTION_HEART_RATE      = 2,
@@ -57,6 +73,9 @@ typedef struct {
     bool invert_miniview;
     uint8_t weather_option;
     uint8_t weather_refresh_interval;
+    uint8_t unit_temp;
+    uint8_t unit_altitude;
+    uint8_t unit_pressure;
     uint8_t miniview_option;
     uint8_t graph_option;
     uint8_t seconds_option;

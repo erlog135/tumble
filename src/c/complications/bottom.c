@@ -45,7 +45,7 @@ static void bottom_update_proc(Layer *layer, GContext *ctx) {
 
   if (data->icon_bitmap && data->config.mode != BOTTOM_MODE_TEXT_ONLY) {
     GRect icon_rect = GRect(cur_x, center_y - icon_size.h / 2, icon_size.w, icon_size.h);
-    graphics_context_set_compositing_mode(ctx, GCompOpSet);
+    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
     graphics_draw_bitmap_in_rect(ctx, data->icon_bitmap, icon_rect);
     cur_x += icon_and_gap;
   }

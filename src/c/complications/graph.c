@@ -49,7 +49,7 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
 
   if (data->icon_bitmap) {
     GRect icon_rect = GRect(cur_x, center_y - icon_sz.h / 2, icon_sz.w, icon_sz.h);
-    graphics_context_set_compositing_mode(ctx, GCompOpSet);
+    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
     graphics_draw_bitmap_in_rect(ctx, data->icon_bitmap, icon_rect);
     cur_x += icon_sz.w + gap;
   }

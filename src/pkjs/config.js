@@ -30,6 +30,46 @@ module.exports = [
     "items": [
       {
         "type": "heading",
+        "defaultValue": "Units"
+      },
+      {
+        "type": "select",
+        "messageKey": "CFG_UNIT_TEMP",
+        "label": "Temperature",
+        "defaultValue": "f",
+        "options": [
+          { "label": "°F", "value": "f" },
+          { "label": "°C",   "value": "c" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "CFG_UNIT_ALTITUDE",
+        "label": "Distance",
+        "defaultValue": "ft",
+        "options": [
+          { "label": "ft",      "value": "ft" },
+          { "label": "m",     "value": "m" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "CFG_UNIT_PRESSURE",
+        "label": "Air pressure",
+        "defaultValue": "mb",
+        "options": [
+          { "label": "hPa", "value": "hpa" },
+          { "label": "mb",     "value": "mb" },
+          { "label": "inHg", "value": "inhg" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
         "defaultValue": "Weather"
       },
       {

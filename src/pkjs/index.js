@@ -3,17 +3,40 @@ var clayConfig = require('./config');
 var geo = require('./geo');
 var solar = require('./solar');
 var lunar = require('./lunar');
+var weather = require('./weather/open_meteo');
 
 new Clay(clayConfig);
 
-Pebble.addEventListener('ready', function() {
-  console.log('PebbleKit JS ready');
+function fetchSolarLunar() {
   geo.getPosition(function(err, pos) {
     if (err) {
-      console.log('Location unavailable, skipping solar and lunar updates.');
+      console.log('Solar/lunar: location unavailable, skipping update.');
       return;
     }
     solar.fetch(pos.lat, pos.lon);
     lunar.fetch(pos.lat, pos.lon);
   });
+}
+
+function fetchWeather() {
+  geo.getPosition(function(err, pos) {
+    if (err) {
+      console.log('Weather: location unavailable, skipping refresh.');
+      return;
+    }
+    weather.fetch(pos.lat, pos.lon);
+  });
+}
+
+Pebble.addEventListener('ready', function() {
+  console.log('PebbleKit JS ready');
+
+  fetchSolarLunar();
+  fetchWeather();
+
+  var settings = JSON.parse(localStorage.getItem('clay-settings')) || {};
+  var weatherIntervalMs = (parseInt(settings['CFG_WEATHER_REFRESH_INTERVAL'], 10) || 30) * 60 * 1000;
+
+  setInterval(fetchWeather,     weatherIntervalMs);
+  setInterval(fetchSolarLunar,  12 * 60 * 60 * 1000);
 });

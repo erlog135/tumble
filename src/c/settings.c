@@ -9,6 +9,9 @@ static void prv_default_settings(void) {
     settings.invert_miniview = true;
     settings.weather_option = WEATHER_OPTION_WEATHERKIT;
     settings.weather_refresh_interval = 30;
+    settings.unit_temp = UNIT_TEMP_F;
+    settings.unit_altitude = UNIT_ALTITUDE_FT;
+    settings.unit_pressure = UNIT_PRESSURE_MB;
     settings.miniview_option = MINIVIEW_OPTION_DATE_DOW_DATE;
     settings.graph_option = GRAPH_OPTION_STEPS;
     settings.seconds_option = SECONDS_OPTION_ALWAYS_ON;
