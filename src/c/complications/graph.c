@@ -56,7 +56,8 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
 
   graphics_context_set_text_color(ctx, GColorWhite);
   graphics_draw_text(ctx, label, data->config.label_font,
-    GRect(cur_x, center_y - text_sz.h / 2, text_sz.w + 2, text_sz.h),
+    GRect(cur_x, center_y - text_sz.h / 2 - SMALL_FONT_BOTTOM_MARGIN,
+      text_sz.w + 2, text_sz.h),
     GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 

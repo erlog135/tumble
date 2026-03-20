@@ -4,7 +4,7 @@
 #include "../settings.h"
 
 // Uncomment to test sun-clock: full revolution driven by seconds (one per minute)
-#define TEST_SUN_CLOCK_SECONDS
+// #define TEST_SUN_CLOCK_SECONDS
 
 typedef enum {
     COMPLICATION_GRAPH = 0,

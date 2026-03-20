@@ -6,6 +6,7 @@
 
 static Window *s_main_window;
 static Layer *s_time_display_layer;
+static AppTimer *s_shake_timer = NULL;
 #if DRAW_DEBUG_RECTANGLES
 static Layer *s_debug_layer;
 #endif
@@ -32,14 +33,53 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 #endif
 }
 
+static void prv_shake_timer_callback(void *context) {
+    s_shake_timer = NULL;
+    time_display_set_seconds_visible(s_time_display_layer, false);
+    tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+    update_time();
+}
+
+static void prv_tap_handler(AccelAxisType axis, int32_t direction) {
+    ClaySettings *cfg = settings_get();
+    uint32_t duration_ms = (cfg->seconds_option == SECONDS_OPTION_SHAKE_30S) ? 30000 : 15000;
+
+    if (s_shake_timer) {
+        app_timer_reschedule(s_shake_timer, duration_ms);
+    } else {
+        time_display_set_seconds_visible(s_time_display_layer, true);
+        tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+        update_time();
+        s_shake_timer = app_timer_register(duration_ms, prv_shake_timer_callback, NULL);
+    }
+}
+
 static void update_tick_subscription(void) {
 #ifdef TEST_SUN_CLOCK_SECONDS
     tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 #else
     ClaySettings *cfg = settings_get();
-    TimeUnits units = (cfg->seconds_option != SECONDS_OPTION_ALWAYS_OFF)
-        ? SECOND_UNIT : MINUTE_UNIT;
-    tick_timer_service_subscribe(units, tick_handler);
+
+    if (s_shake_timer) {
+        app_timer_cancel(s_shake_timer);
+        s_shake_timer = NULL;
+    }
+
+    bool is_shake = (cfg->seconds_option == SECONDS_OPTION_SHAKE_30S ||
+                     cfg->seconds_option == SECONDS_OPTION_SHAKE_15S);
+
+    if (is_shake) {
+        accel_tap_service_subscribe(prv_tap_handler);
+        time_display_set_seconds_reserved(s_time_display_layer, true);
+        time_display_set_seconds_visible(s_time_display_layer, false);
+        tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+    } else {
+        accel_tap_service_unsubscribe();
+        bool show = (cfg->seconds_option == SECONDS_OPTION_ALWAYS_ON);
+        time_display_set_seconds_reserved(s_time_display_layer, show);
+        time_display_set_seconds_visible(s_time_display_layer, show);
+        tick_timer_service_subscribe(show ? SECOND_UNIT : MINUTE_UNIT, tick_handler);
+    }
 #endif
 }
 
@@ -206,6 +246,11 @@ static void init(void) {
 
 static void deinit(void) {
     tick_timer_service_unsubscribe();
+    accel_tap_service_unsubscribe();
+    if (s_shake_timer) {
+        app_timer_cancel(s_shake_timer);
+        s_shake_timer = NULL;
+    }
     window_destroy(s_main_window);
 }
 

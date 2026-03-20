@@ -2,6 +2,7 @@
 #include "history.h"
 #include "../complications/graph.h"
 #include "../complications/miniview.h"
+#include "../complications/bottom.h"
 
 // Battery: 0–100 % → scaled 0–127.  Invalid = HISTORY_INVALID.
 static int8_t prv_scale_battery(int pct) {
@@ -10,7 +11,7 @@ static int8_t prv_scale_battery(int pct) {
 }
 
 static uint32_t prv_battery_icon(int percent) {
-  if (percent <= 0)  return RESOURCE_ID_ICON_BATTERY_0;
+  if (percent <= 10)  return RESOURCE_ID_ICON_BATTERY_0;
   if (percent <= 20) return RESOURCE_ID_ICON_BATTERY_20;
   if (percent <= 40) return RESOURCE_ID_ICON_BATTERY_40;
   if (percent <= 60) return RESOURCE_ID_ICON_BATTERY_60;
@@ -74,24 +75,44 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       break;
     }
     case COMPLICATION_MINIVIEW: {
-      GFont font_28 = providers_get_font_28();
-      layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
-        .mode = MINIVIEW_MODE_TEXT_STACK,
-        .tiny_text_bounds = layout->miniview_tiny_text_bounds,
-        .small_text_bounds = layout->miniview_small_text_bounds,
-        .tiny_font = font_20,
-        .small_font = font_28,
-      });
       BatteryChargeState state = battery_state_service_peek();
-      char buf[8];
-      if (option == MINIVIEW_OPTION_BATTERY_DND) {
-        bool bt = connection_service_peek_pebble_app_connection();
-        miniview_set_tiny_text(layer, bt ? "BT" : "NO BT");
+      if (option == MINIVIEW_OPTION_BATTERY) {
+        layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+          .mode = MINIVIEW_MODE_ICON_CENTER,
+          .icon_resource_id = prv_battery_icon(state.charge_percent),
+        });
       } else {
-        miniview_set_tiny_text(layer, "BAT");
+        GFont font_28 = providers_get_font_28();
+        layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+          .mode = MINIVIEW_MODE_TEXT_STACK,
+          .tiny_text_bounds = layout->miniview_tiny_text_bounds,
+          .small_text_bounds = layout->miniview_small_text_bounds,
+          .tiny_font = font_20,
+          .small_font = font_28,
+        });
+        char buf[8];
+        if (option == MINIVIEW_OPTION_BATTERY_DND) {
+          bool bt = connection_service_peek_pebble_app_connection();
+          miniview_set_tiny_text(layer, bt ? "BT" : "NO BT");
+        }
+        snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
+        miniview_set_small_text(layer, buf);
       }
-      snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
-      miniview_set_small_text(layer, buf);
+      break;
+    }
+    case COMPLICATION_BOTTOM_LEFT:
+    case COMPLICATION_BOTTOM_RIGHT: {
+      GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
+        ? layout->bottom_left_bounds : layout->bottom_right_bounds;
+      BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
+        ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+      BatteryChargeState bstate = battery_state_service_peek();
+      layer = bottom_complication_create(bounds, (BottomConfig) {
+        .mode = BOTTOM_MODE_ICON_ONLY,
+        .align = align,
+        .font = font_20,
+        .icon_resource_id = prv_battery_icon(bstate.charge_percent),
+      });
       break;
     }
     default:
@@ -134,17 +155,21 @@ void battery_provider_tick(struct tm *tick_time) {
         prv_update_graph(layer);
         break;
       case COMPLICATION_MINIVIEW: {
-        char buf[8];
-        if (s_slots[i].option == MINIVIEW_OPTION_BATTERY_DND) {
+        if (s_slots[i].option == MINIVIEW_OPTION_BATTERY) {
+          miniview_set_icon_resource_id(layer, prv_battery_icon(state.charge_percent));
+        } else if (s_slots[i].option == MINIVIEW_OPTION_BATTERY_DND) {
+          char buf[8];
           bool bt = connection_service_peek_pebble_app_connection();
           miniview_set_tiny_text(layer, bt ? "BT" : "NO BT");
-        } else {
-          miniview_set_tiny_text(layer, "BAT");
+          snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
+          miniview_set_small_text(layer, buf);
         }
-        snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
-        miniview_set_small_text(layer, buf);
         break;
       }
+      case COMPLICATION_BOTTOM_LEFT:
+      case COMPLICATION_BOTTOM_RIGHT:
+        bottom_complication_set_icon(layer, prv_battery_icon(state.charge_percent));
+        break;
       default:
         break;
     }

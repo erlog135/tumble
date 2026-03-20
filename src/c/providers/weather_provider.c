@@ -76,21 +76,10 @@ static uint32_t prv_icon_for_miniview_option(uint8_t option) {
 
 static uint32_t prv_icon_for_bottom_option(uint8_t option) {
   switch (option) {
-    case BOTTOM_OPTION_AIR_PRESSURE:   return RESOURCE_ID_ICON_PRESSURE;
-    case BOTTOM_OPTION_PRESSURE_TREND: return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
-    case BOTTOM_OPTION_ALTITUDE:       return RESOURCE_ID_ICON_ALTITUDE;
-    default:                           return 0;
+    case BOTTOM_OPTION_AIR_PRESSURE: return RESOURCE_ID_ICON_PRESSURE;
+    case BOTTOM_OPTION_ALTITUDE:     return RESOURCE_ID_ICON_ALTITUDE;
+    default:                         return 0;
   }
-}
-
-static uint32_t prv_pressure_trend_icon(int16_t trend) {
-  if (trend <= -3) return RESOURCE_ID_ICON_PRESSURE_TREND_DD;
-  if (trend == -2) return RESOURCE_ID_ICON_PRESSURE_TREND_DS;
-  if (trend == -1) return RESOURCE_ID_ICON_PRESSURE_TREND_SD;
-  if (trend ==  0) return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
-  if (trend ==  1) return RESOURCE_ID_ICON_PRESSURE_TREND_SU;
-  if (trend ==  2) return RESOURCE_ID_ICON_PRESSURE_TREND_US;
-  return RESOURCE_ID_ICON_PRESSURE_TREND_UU;
 }
 
 typedef struct {
@@ -125,6 +114,40 @@ static int16_t s_altitude;
 static int16_t s_condition;
 static bool s_has_data;
 static WeatherHistory s_history;
+
+// Derive the pressure-trend icon from the local 6-hour history.
+// Splits the last 6 hourly samples into two 3-hour windows, classifies each
+// as up / steady / down, and returns the matching icon.
+// Returns RESOURCE_ID_PRESSURE_TREND_SAMPLING when fewer than 6 valid
+// samples are available.
+static uint32_t prv_compute_pressure_trend_icon(void) {
+  if (s_history.count < 6) return RESOURCE_ID_PRESSURE_TREND_SAMPLING;
+  for (int i = 0; i < 6; i++) {
+    if (s_history.pressure[i] == HISTORY_INVALID) return RESOURCE_ID_PRESSURE_TREND_SAMPLING;
+  }
+
+  // history is most-recent-first: [0] = now, [2] = 3 h ago, [5] = 6 h ago
+  // Positive delta means pressure rose over the window.
+#define TREND_THRESHOLD 1
+  int recent = 0, older = 0;
+  int8_t rd = s_history.pressure[0] - s_history.pressure[2];
+  int8_t od = s_history.pressure[3] - s_history.pressure[5];
+  if      (rd >  TREND_THRESHOLD) recent =  1;
+  else if (rd < -TREND_THRESHOLD) recent = -1;
+  if      (od >  TREND_THRESHOLD) older  =  1;
+  else if (od < -TREND_THRESHOLD) older  = -1;
+#undef TREND_THRESHOLD
+
+  // Icon name encodes [older window][recent window].
+  if (older == -1 && recent == -1) return RESOURCE_ID_ICON_PRESSURE_TREND_DD;
+  if (older == -1 && recent ==  0) return RESOURCE_ID_ICON_PRESSURE_TREND_DS;
+  if (older ==  0 && recent == -1) return RESOURCE_ID_ICON_PRESSURE_TREND_SD;
+  if (older ==  0 && recent ==  0) return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
+  if (older ==  0 && recent ==  1) return RESOURCE_ID_ICON_PRESSURE_TREND_SU;
+  if (older ==  1 && recent ==  0) return RESOURCE_ID_ICON_PRESSURE_TREND_US;
+  if (older ==  1 && recent ==  1) return RESOURCE_ID_ICON_PRESSURE_TREND_UU;
+  return RESOURCE_ID_ICON_PRESSURE_TREND_SS;
+}
 
 // Push one sample for all three weather series simultaneously.
 static void prv_history_push_all(int8_t pres, int8_t alt, int8_t temp) {
@@ -237,13 +260,16 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
         ? layout->bottom_left_bounds : layout->bottom_right_bounds;
       BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
         ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+      bool is_trend = (option == BOTTOM_OPTION_PRESSURE_TREND);
       layer = bottom_complication_create(bounds, (BottomConfig) {
-        .mode = BOTTOM_MODE_ICON_TEXT,
+        .mode = is_trend ? BOTTOM_MODE_ICON_ONLY : BOTTOM_MODE_ICON_TEXT,
         .align = align,
         .font = font_20,
-        .icon_resource_id = prv_icon_for_bottom_option(option),
+        .icon_resource_id = is_trend
+          ? prv_compute_pressure_trend_icon()
+          : prv_icon_for_bottom_option(option),
       });
-      bottom_complication_set_text(layer, "--");
+      if (!is_trend) bottom_complication_set_text(layer, "--");
       break;
     }
     default:
@@ -307,20 +333,21 @@ void weather_provider_tick(struct tm *tick_time) {
       }
       case COMPLICATION_BOTTOM_LEFT:
       case COMPLICATION_BOTTOM_RIGHT: {
+        uint8_t opt = s_slots[i].option;
+        if (opt == BOTTOM_OPTION_PRESSURE_TREND) {
+          bottom_complication_set_icon(layer, prv_compute_pressure_trend_icon());
+          break;
+        }
         char buf[20];
         if (!s_has_data) {
           strncpy(buf, "--", sizeof(buf));
         } else {
           ClaySettings *cfg = settings_get();
-          switch (s_slots[i].option) {
+          switch (opt) {
             case BOTTOM_OPTION_ALTITUDE:
               prv_format_altitude(buf, sizeof(buf), s_altitude, cfg->unit_altitude);      break;
             case BOTTOM_OPTION_AIR_PRESSURE:
               prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
-            case BOTTOM_OPTION_PRESSURE_TREND:
-              snprintf(buf, sizeof(buf), "%+d", s_pressure_trend);
-              bottom_complication_set_icon(layer, prv_pressure_trend_icon(s_pressure_trend));
-              break;
             case BOTTOM_OPTION_TEMPERATURE:
               prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);    break;
             default:

@@ -1,4 +1,5 @@
 #include "bottom.h"
+#include "../layout.h"
 
 #define BOTTOM_TEXT_MAX_LEN 32
 #define BOTTOM_ICON_TEXT_GAP 4
@@ -51,7 +52,9 @@ static void bottom_update_proc(Layer *layer, GContext *ctx) {
   }
 
   if (data->config.mode != BOTTOM_MODE_ICON_ONLY && data->text[0] != '\0') {
-    GRect text_rect = GRect(cur_x, center_y - text_size.h / 2, text_size.w + 2, text_size.h);
+    GRect text_rect = GRect(cur_x,
+      center_y - text_size.h / 2 - SMALL_FONT_BOTTOM_MARGIN,
+      text_size.w + 2, text_size.h);
     graphics_context_set_text_color(ctx, GColorWhite);
     graphics_draw_text(ctx, data->text, data->config.font, text_rect,
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);

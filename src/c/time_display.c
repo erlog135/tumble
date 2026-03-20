@@ -9,6 +9,8 @@ typedef struct {
   TextLayer *seconds_layer;
   Layer *glyph_layer;
   char time_str[8];
+  bool seconds_visible;
+  bool seconds_reserved;  /* keep seconds column space even when hidden */
 } TimeDisplayData;
 
 static int8_t prv_char_to_glyph_index(char c) {
@@ -40,7 +42,9 @@ static void glyph_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
   int16_t glyph_w = prv_glyph_total_width(data->time_str);
-  int16_t total_w = glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH;
+  int16_t total_w = (data->seconds_visible || data->seconds_reserved)
+    ? glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH
+    : glyph_w;
   int16_t x = (bounds.size.w - total_w) / 2;
   int16_t y = (bounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
 
@@ -93,6 +97,8 @@ Layer *time_display_create(GRect bounds, GFont seconds_font) {
   }
 
   data->time_str[0] = '\0';
+  data->seconds_visible = true;
+  data->seconds_reserved = true;
 
   /* Seconds layer (drawn first, behind) */
   GRect seconds_bounds = GRect(
@@ -147,15 +153,33 @@ void time_display_set_time(Layer *layer, struct tm *tick_time) {
   TimeDisplayData *data = layer_get_data(layer);
   strftime(data->time_str, sizeof(data->time_str),
     clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
-  static char seconds_buf[3];
-  strftime(seconds_buf, sizeof(seconds_buf), "%S", tick_time);
-  text_layer_set_text(data->seconds_layer, seconds_buf);
 
-  int16_t glyph_w = prv_glyph_total_width(data->time_str);
-  int16_t total_w = glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH;
-  int16_t start_x = (layer_get_bounds(layer).size.w - total_w) / 2;
-  layer_set_frame(text_layer_get_layer(data->seconds_layer),
-    GRect(start_x + glyph_w + GLYPH_SPACING_X, 0, SECONDS_LAYER_WIDTH, TINY_FONT_HEIGHT));
+  if (data->seconds_visible || data->seconds_reserved) {
+    int16_t glyph_w = prv_glyph_total_width(data->time_str);
+    int16_t total_w = glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH;
+    int16_t start_x = (layer_get_bounds(layer).size.w - total_w) / 2;
+    layer_set_frame(text_layer_get_layer(data->seconds_layer),
+      GRect(start_x + glyph_w + GLYPH_SPACING_X, 0, SECONDS_LAYER_WIDTH, TINY_FONT_HEIGHT));
 
+    if (data->seconds_visible) {
+      static char seconds_buf[3];
+      strftime(seconds_buf, sizeof(seconds_buf), "%S", tick_time);
+      text_layer_set_text(data->seconds_layer, seconds_buf);
+    }
+  }
+
+  layer_mark_dirty(data->glyph_layer);
+}
+
+void time_display_set_seconds_visible(Layer *layer, bool visible) {
+  TimeDisplayData *data = layer_get_data(layer);
+  data->seconds_visible = visible;
+  layer_set_hidden(text_layer_get_layer(data->seconds_layer), !visible);
+  layer_mark_dirty(data->glyph_layer);
+}
+
+void time_display_set_seconds_reserved(Layer *layer, bool reserved) {
+  TimeDisplayData *data = layer_get_data(layer);
+  data->seconds_reserved = reserved;
   layer_mark_dirty(data->glyph_layer);
 }

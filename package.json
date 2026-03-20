@@ -145,6 +145,12 @@
         },
         {
           "type": "bitmap",
+          "name": "PRESSURE_TREND_SAMPLING",
+          "file": "icons/PressureTrend_Sampling.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
           "name": "ICON_BATTERY_0",
           "file": "icons/Battery0.png",
           "memoryFormat": "1Bit"

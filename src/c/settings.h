@@ -66,6 +66,7 @@ typedef enum {
     BOTTOM_OPTION_PRESSURE_TREND   = 7,
     BOTTOM_OPTION_SUNRISE_SUNSET   = 8,
     BOTTOM_OPTION_TEMPERATURE      = 9,
+    BOTTOM_OPTION_BATTERY          = 10,
 } BottomOption;
 
 typedef struct {
