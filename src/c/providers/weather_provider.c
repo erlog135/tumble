@@ -82,6 +82,38 @@ static uint32_t prv_icon_for_bottom_option(uint8_t option) {
   }
 }
 
+// Compact condition enum — must stay in sync with wmoToCondition() in open_meteo.js
+typedef enum {
+  WEATHER_COND_UNKNOWN             = 0,
+  WEATHER_COND_CLEAR               = 1,
+  WEATHER_COND_PARTLY_CLOUDY       = 2,  // WMO 1–2
+  WEATHER_COND_CLOUDY              = 3,  // WMO 3 overcast
+  WEATHER_COND_FOGGY               = 4,
+  WEATHER_COND_RAINY               = 5,  // drizzle, rain, rain showers
+  WEATHER_COND_SNOWY_RAINY         = 6,  // freezing drizzle / freezing rain
+  WEATHER_COND_SNOWY               = 7,  // snow fall, snow grains, snow showers
+  WEATHER_COND_STORMY              = 8,  // thunderstorm ± hail
+  WEATHER_COND_CLEAR_NIGHT         = 9,
+  WEATHER_COND_PARTLY_CLOUDY_NIGHT = 10, // WMO 1–2 at night
+} WeatherCondition;
+
+static uint32_t prv_icon_for_condition(int16_t condition) {
+  switch ((WeatherCondition)condition) {
+    case WEATHER_COND_UNKNOWN:             return RESOURCE_ID_ICON_WEATHER_UNKNOWN;
+    case WEATHER_COND_CLEAR:               return RESOURCE_ID_ICON_WEATHER_CLEAR;
+    case WEATHER_COND_PARTLY_CLOUDY:       return RESOURCE_ID_ICON_WEATHER_PARTLY_CLOUDY;
+    case WEATHER_COND_CLOUDY:              return RESOURCE_ID_ICON_WEATHER_CLOUDY;
+    case WEATHER_COND_FOGGY:              return RESOURCE_ID_ICON_WEATHER_FOGGY;
+    case WEATHER_COND_RAINY:              return RESOURCE_ID_ICON_WEATHER_RAINY;
+    case WEATHER_COND_SNOWY_RAINY:        return RESOURCE_ID_ICON_WEATHER_SNOWY_RAINY;
+    case WEATHER_COND_SNOWY:              return RESOURCE_ID_ICON_WEATHER_SNOWY;
+    case WEATHER_COND_STORMY:             return RESOURCE_ID_ICON_WEATHER_STORMY;
+    case WEATHER_COND_CLEAR_NIGHT:        return RESOURCE_ID_ICON_WEATHER_CLEAR_NIGHT;
+    case WEATHER_COND_PARTLY_CLOUDY_NIGHT: return RESOURCE_ID_ICON_WEATHER_PARTLY_CLOUDY_NIGHT;
+    default:                              return RESOURCE_ID_ICON_WEATHER_UNKNOWN;
+  }
+}
+
 typedef struct {
   bool active;
   uint8_t option;
@@ -195,6 +227,9 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
     }
   }
   graph_set_label_text(layer, buf);
+  if (option == GRAPH_OPTION_TEMPERATURE && s_has_data) {
+    graph_set_icon(layer, prv_icon_for_condition(s_condition));
+  }
 }
 
 void weather_provider_init(void) {
@@ -254,6 +289,9 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
         .icon_resource_id = prv_icon_for_miniview_option(option),
       });
       miniview_set_small_text(layer, "--");
+      if (option == MINIVIEW_OPTION_WEATHER && s_has_data) {
+        miniview_set_icon_resource_id(layer, prv_icon_for_condition(s_condition));
+      }
       break;
     }
     case COMPLICATION_BOTTOM_LEFT:
@@ -272,6 +310,9 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
           : prv_icon_for_bottom_option(option),
       });
       if (!is_trend) bottom_complication_set_text(layer, "--");
+      if (option == BOTTOM_OPTION_TEMPERATURE && s_has_data) {
+        bottom_complication_set_icon(layer, prv_icon_for_condition(s_condition));
+      }
       break;
     }
     default:
@@ -325,7 +366,9 @@ void weather_provider_tick(struct tm *tick_time) {
             case MINIVIEW_OPTION_AIR_PRESSURE:
               prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
             case MINIVIEW_OPTION_WEATHER:
-              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);    break;
+              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);
+              miniview_set_icon_resource_id(layer, prv_icon_for_condition(s_condition));
+              break;
             default:
               strncpy(buf, "--", sizeof(buf));                                            break;
           }
@@ -351,7 +394,9 @@ void weather_provider_tick(struct tm *tick_time) {
             case BOTTOM_OPTION_AIR_PRESSURE:
               prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
             case BOTTOM_OPTION_TEMPERATURE:
-              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);    break;
+              prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);
+              bottom_complication_set_icon(layer, prv_icon_for_condition(s_condition));
+              break;
             default:
               strncpy(buf, "--", sizeof(buf));                                            break;
           }

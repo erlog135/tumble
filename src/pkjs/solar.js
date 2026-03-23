@@ -30,4 +30,10 @@ function fetch(lat, lon) {
   );
 }
 
-module.exports = { fetch: fetch };
+function isDaytime(lat, lon) {
+  var now   = new Date();
+  var times = SunCalc.getTimes(now, lat, lon);
+  return now >= times.sunrise && now <= times.sunset;
+}
+
+module.exports = { fetch: fetch, isDaytime: isDaytime };

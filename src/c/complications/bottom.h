@@ -23,3 +23,8 @@ Layer *bottom_complication_create(GRect bounds, BottomConfig config);
 void bottom_complication_set_text(Layer *layer, const char *text);
 void bottom_complication_set_icon(Layer *layer, uint32_t resource_id);
 void bottom_complication_destroy(Layer *layer);
+
+// Link two bottom complications together so they horizontally center as a pair.
+// Call on both the left and right layer after both are created.
+void bottom_complication_set_partner(Layer *layer, Layer *partner);
+int16_t bottom_complication_get_content_width(Layer *layer);

@@ -4,12 +4,37 @@
 #define BOTTOM_TEXT_MAX_LEN 32
 #define BOTTOM_ICON_TEXT_GAP 4
 #define BOTTOM_EDGE_MARGIN 2
+#define BOTTOM_PAIR_GAP 8
 
 typedef struct {
   BottomConfig config;
   GBitmap *icon_bitmap;
   char text[BOTTOM_TEXT_MAX_LEN];
+  Layer *partner;
 } BottomData;
+
+static int16_t prv_compute_content_width(BottomData *data, GRect bounds) {
+  GSize icon_size = GSizeZero;
+  if (data->icon_bitmap && data->config.mode != BOTTOM_MODE_TEXT_ONLY) {
+    icon_size = gbitmap_get_bounds(data->icon_bitmap).size;
+  }
+
+  GSize text_size = GSizeZero;
+  if (data->config.mode != BOTTOM_MODE_ICON_ONLY && data->text[0] != '\0') {
+    text_size = graphics_text_layout_get_content_size(
+      data->text, data->config.font,
+      GRect(0, 0, bounds.size.w, bounds.size.h),
+      GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
+  }
+
+  int16_t icon_and_gap = (data->config.mode == BOTTOM_MODE_ICON_TEXT && icon_size.w > 0)
+    ? icon_size.w + BOTTOM_ICON_TEXT_GAP : 0;
+  switch (data->config.mode) {
+    case BOTTOM_MODE_ICON_TEXT: return icon_and_gap + text_size.w;
+    case BOTTOM_MODE_ICON_ONLY: return icon_size.w;
+    default:                    return text_size.w;
+  }
+}
 
 static void bottom_update_proc(Layer *layer, GContext *ctx) {
   BottomData *data = layer_get_data(layer);
@@ -38,9 +63,20 @@ static void bottom_update_proc(Layer *layer, GContext *ctx) {
     default:                    total_width = text_size.w;                break;
   }
 
-  int16_t start_x = (data->config.align == BOTTOM_ALIGN_LEFT)
-    ? BOTTOM_EDGE_MARGIN
-    : bounds.size.w - total_width - BOTTOM_EDGE_MARGIN;
+  int16_t start_x;
+  if (data->partner) {
+    int16_t partner_width = bottom_complication_get_content_width(data->partner);
+    int16_t combined = total_width + BOTTOM_PAIR_GAP + partner_width;
+    int16_t center_start = (bounds.size.w - combined) / 2;
+    if (center_start < BOTTOM_EDGE_MARGIN) center_start = BOTTOM_EDGE_MARGIN;
+    start_x = (data->config.align == BOTTOM_ALIGN_LEFT)
+      ? center_start
+      : center_start + partner_width + BOTTOM_PAIR_GAP;
+  } else {
+    start_x = (data->config.align == BOTTOM_ALIGN_LEFT)
+      ? BOTTOM_EDGE_MARGIN
+      : bounds.size.w - total_width - BOTTOM_EDGE_MARGIN;
+  }
 
   int16_t cur_x = start_x;
 
@@ -99,4 +135,15 @@ void bottom_complication_destroy(Layer *layer) {
     gbitmap_destroy(data->icon_bitmap);
   }
   layer_destroy(layer);
+}
+
+int16_t bottom_complication_get_content_width(Layer *layer) {
+  BottomData *data = layer_get_data(layer);
+  return prv_compute_content_width(data, layer_get_bounds(layer));
+}
+
+void bottom_complication_set_partner(Layer *layer, Layer *partner) {
+  BottomData *data = layer_get_data(layer);
+  data->partner = partner;
+  layer_mark_dirty(layer);
 }

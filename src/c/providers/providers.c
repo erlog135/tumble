@@ -183,6 +183,12 @@ void providers_apply_settings(void) {
         }
     }
 
+    // Link bottom widgets so each can center itself relative to the other
+    Layer *bottom_left  = s_layers[COMPLICATION_BOTTOM_LEFT];
+    Layer *bottom_right = s_layers[COMPLICATION_BOTTOM_RIGHT];
+    if (bottom_left)  bottom_complication_set_partner(bottom_left,  bottom_right);
+    if (bottom_right) bottom_complication_set_partner(bottom_right, bottom_left);
+
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     providers_on_minute_tick(t);

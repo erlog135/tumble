@@ -38,9 +38,8 @@ void layout_init(Layout *layout, GRect bounds) {
         TINY_FONT_HEIGHT
     );
 
-    // Compute and inset bottom left/right within bottom_section_bounds
-    GRect bottom_left_rect = GRect(layout->bottom_section_bounds.origin.x, layout->bottom_section_bounds.origin.y, layout->bottom_section_bounds.size.w / 2, layout->bottom_section_bounds.size.h);
-    GRect bottom_right_rect = GRect(layout->bottom_section_bounds.size.w / 2, layout->bottom_section_bounds.origin.y, layout->bottom_section_bounds.size.w / 2, layout->bottom_section_bounds.size.h);
-    layout->bottom_left_bounds = grect_inset(bottom_left_rect, GEdgeInsets(SECTION_MARGIN));
-    layout->bottom_right_bounds = grect_inset(bottom_right_rect, GEdgeInsets(SECTION_MARGIN));
+    // Both bottom widgets share the full-width bounds so centering across both is unclipped
+    GRect bottom_full_rect = grect_inset(layout->bottom_section_bounds, GEdgeInsets(SECTION_MARGIN));
+    layout->bottom_left_bounds  = bottom_full_rect;
+    layout->bottom_right_bounds = bottom_full_rect;
 }

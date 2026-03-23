@@ -73,6 +73,11 @@
         },
         {
           "type": "bitmap",
+          "name": "SHEET_GLYPHS_52",
+          "file": "fonts/bitmaps/BebasNeue52.png"
+        },
+        {
+          "type": "bitmap",
           "name": "ICON_STEPS",
           "file": "icons/Steps.png",
           "memoryFormat": "1Bit"
@@ -268,9 +273,71 @@
         },
         {
           "type": "bitmap",
-          "name": "SHEET_GLYPHS_52",
-          "file": "fonts/bitmaps/BebasNeue52.png"
+          "name": "ICON_WEATHER_UNKNOWN",
+          "file": "icons/weather/Unknown.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLEAR",
+          "file": "icons/weather/Clear.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLEAR_NIGHT",
+          "file": "icons/weather/ClearNight.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLOUDY",
+          "file": "icons/weather/Cloudy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_FOGGY",
+          "file": "icons/weather/Foggy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_PARTLY_CLOUDY",
+          "file": "icons/weather/PartlyCloudy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_PARTLY_CLOUDY_NIGHT",
+          "file": "icons/weather/PartlyCloudyNight.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_RAINY",
+          "file": "icons/weather/Rainy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_SNOWY",
+          "file": "icons/weather/Snowy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_SNOWY_RAINY",
+          "file": "icons/weather/SnowyRainy.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_STORMY",
+          "file": "icons/weather/Stormy.png",
+          "memoryFormat": "1Bit"
         }
+        
       ]
     }
   }
