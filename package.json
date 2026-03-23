@@ -187,6 +187,30 @@
         },
         {
           "type": "bitmap",
+          "name": "ICON_QUIET_TIME_ENABLED",
+          "file": "icons/QuietTime_Enabled.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_QUIET_TIME_DISABLED",
+          "file": "icons/QuietTime_Disabled.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PHONE_CONNECTED",
+          "file": "icons/Phone_Connected.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PHONE_DISCONNECTED",
+          "file": "icons/Phone_Disconnected.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
           "name": "ICON_SUN",
           "file": "icons/Sun.png"
         },

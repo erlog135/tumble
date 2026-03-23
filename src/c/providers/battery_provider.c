@@ -4,10 +4,9 @@
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
 
-// Battery: 0–100 % → scaled 0–127.  Invalid = HISTORY_INVALID.
-static int8_t prv_scale_battery(int pct) {
+static int8_t prv_battery_value(int pct) {
   if (pct < 0) return HISTORY_INVALID;
-  return (int8_t)(pct > 100 ? 127 : pct * 127 / 100);
+  return (int8_t)(pct > 100 ? 100 : pct);
 }
 
 static uint32_t prv_battery_icon(int percent) {
@@ -32,6 +31,18 @@ typedef struct {
 
 static SlotState s_slots[COMPLICATION_COUNT];
 static BatteryHistory s_history;
+static bool s_connection_subscribed = false;
+
+static void prv_connection_handler(bool connected) {
+  if (!s_slots[COMPLICATION_MINIVIEW].active) return;
+  if (s_slots[COMPLICATION_MINIVIEW].option != MINIVIEW_OPTION_BATTERY_DND) return;
+  Layer *layer = providers_get_layer(COMPLICATION_MINIVIEW);
+  if (!layer) return;
+  uint32_t res = connected
+    ? RESOURCE_ID_ICON_PHONE_CONNECTED
+    : RESOURCE_ID_ICON_PHONE_DISCONNECTED;
+  miniview_set_column_icon(layer, 2, res);
+}
 
 static void prv_update_graph(Layer *layer) {
   graph_set_values(layer, s_history.points, s_history.count);
@@ -64,10 +75,13 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       BatteryChargeState state = battery_state_service_peek();
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
-        .style = GRAPH_STYLE_LINE,
-        .h_markers = 5,
-        .v_markers = 3,
+        .style = GRAPH_STYLE_FILLED,
+        .h_markers = 3,
+        .v_markers = 1,
         .top_lip = true,
+        .fixed_range = true,
+        .fixed_min = 0,
+        .fixed_max = 100,
         .label_font = font_20,
         .icon_resource_id = prv_battery_icon(state.charge_percent),
       });
@@ -82,21 +96,22 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
           .icon_resource_id = prv_battery_icon(state.charge_percent),
         });
       } else {
-        GFont font_28 = providers_get_font_28();
+        bool qt = quiet_time_is_active();
+        bool bt = connection_service_peek_pebble_app_connection();
         layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
-          .mode = MINIVIEW_MODE_TEXT_STACK,
-          .tiny_text_bounds = layout->miniview_tiny_text_bounds,
-          .small_text_bounds = layout->miniview_small_text_bounds,
-          .tiny_font = font_20,
-          .small_font = font_28,
+          .mode = MINIVIEW_MODE_ICON_COLUMN,
+          .column_icon_resource_ids = {
+            qt ? RESOURCE_ID_ICON_QUIET_TIME_ENABLED : RESOURCE_ID_ICON_QUIET_TIME_DISABLED,
+            prv_battery_icon(state.charge_percent),
+            bt ? RESOURCE_ID_ICON_PHONE_CONNECTED : RESOURCE_ID_ICON_PHONE_DISCONNECTED,
+          },
         });
-        char buf[8];
-        if (option == MINIVIEW_OPTION_BATTERY_DND) {
-          bool bt = connection_service_peek_pebble_app_connection();
-          miniview_set_tiny_text(layer, bt ? "BT" : "NO BT");
+        if (!s_connection_subscribed) {
+          connection_service_subscribe((ConnectionHandlers) {
+            .pebble_app_connection_handler = prv_connection_handler,
+          });
+          s_connection_subscribed = true;
         }
-        snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
-        miniview_set_small_text(layer, buf);
       }
       break;
     }
@@ -126,6 +141,12 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
 }
 
 void battery_provider_deactivate(ComplicationSlot slot) {
+  if (slot == COMPLICATION_MINIVIEW
+      && s_slots[slot].option == MINIVIEW_OPTION_BATTERY_DND
+      && s_connection_subscribed) {
+    connection_service_unsubscribe();
+    s_connection_subscribed = false;
+  }
   s_slots[slot].active = false;
 }
 
@@ -134,7 +155,7 @@ void battery_provider_record_history(struct tm *tick_time) {
   if (cur_hour == s_history.last_hour) return;
 
   BatteryChargeState state = battery_state_service_peek();
-  int8_t scaled = prv_scale_battery(state.charge_percent);
+  int8_t scaled = prv_battery_value(state.charge_percent);
   history_push(s_history.points, &s_history.count, HISTORY_24H_LEN, scaled);
   s_history.last_hour = cur_hour;
   persist_write_data(PERSIST_KEY_BATTERY_HISTORY, &s_history, sizeof(s_history));
@@ -158,11 +179,13 @@ void battery_provider_tick(struct tm *tick_time) {
         if (s_slots[i].option == MINIVIEW_OPTION_BATTERY) {
           miniview_set_icon_resource_id(layer, prv_battery_icon(state.charge_percent));
         } else if (s_slots[i].option == MINIVIEW_OPTION_BATTERY_DND) {
-          char buf[8];
+          bool qt = quiet_time_is_active();
           bool bt = connection_service_peek_pebble_app_connection();
-          miniview_set_tiny_text(layer, bt ? "BT" : "NO BT");
-          snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
-          miniview_set_small_text(layer, buf);
+          miniview_set_column_icon(layer, 0,
+            qt ? RESOURCE_ID_ICON_QUIET_TIME_ENABLED : RESOURCE_ID_ICON_QUIET_TIME_DISABLED);
+          miniview_set_column_icon(layer, 1, prv_battery_icon(state.charge_percent));
+          miniview_set_column_icon(layer, 2,
+            bt ? RESOURCE_ID_ICON_PHONE_CONNECTED : RESOURCE_ID_ICON_PHONE_DISCONNECTED);
         }
         break;
       }

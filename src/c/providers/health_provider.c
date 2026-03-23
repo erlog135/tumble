@@ -137,7 +137,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
         .style = style,
-        .h_markers = 5,
+        .h_markers = 3,
         .v_markers = 3,
         .top_lip = true,
         .label_font = font_20,

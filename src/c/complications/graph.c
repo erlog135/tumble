@@ -78,19 +78,19 @@ static void prv_draw_axes(GContext *ctx, GraphData *data) {
   uint8_t hm = data->config.h_markers;
   for (uint8_t i = 1; i <= hm; i++) {
     int16_t tx = x1 + (int16_t)((int32_t)i * (x2 - x1) / (hm + 1));
-    graphics_draw_line(ctx, GPoint(tx, y_bot), GPoint(tx, y_bot - GRAPH_MARKER_SIZE));
+    graphics_draw_line(ctx, GPoint(tx, y_bot), GPoint(tx, y_bot - GRAPH_H_MARKER_SIZE));
   }
 
   uint8_t vm = data->config.v_markers;
   for (uint8_t i = 1; i <= vm; i++) {
     int16_t ty = y_bot - (int16_t)((int32_t)i * (y_bot - y_top) / (vm + 1));
-    graphics_draw_line(ctx, GPoint(x1, ty), GPoint(x1 + GRAPH_MARKER_SIZE, ty));
-    graphics_draw_line(ctx, GPoint(x2, ty), GPoint(x2 - GRAPH_MARKER_SIZE, ty));
+    graphics_draw_line(ctx, GPoint(x1, ty), GPoint(x1 + GRAPH_V_MARKER_SIZE, ty));
+    graphics_draw_line(ctx, GPoint(x2, ty), GPoint(x2 - GRAPH_V_MARKER_SIZE, ty));
   }
 
   if (data->config.top_lip) {
-    graphics_draw_line(ctx, GPoint(x1, y_top), GPoint(x1 + GRAPH_MARKER_SIZE, y_top));
-    graphics_draw_line(ctx, GPoint(x2, y_top), GPoint(x2 - GRAPH_MARKER_SIZE, y_top));
+    graphics_draw_line(ctx, GPoint(x1, y_top), GPoint(x1 + GRAPH_V_MARKER_SIZE, y_top));
+    graphics_draw_line(ctx, GPoint(x2, y_top), GPoint(x2 - GRAPH_V_MARKER_SIZE, y_top));
   }
 }
 
@@ -101,15 +101,21 @@ static void prv_draw_data(GContext *ctx, GraphData *data) {
   GRect plot = data->plot_bounds;
   int16_t y_bot = plot.origin.y + plot.size.h - 1;
 
-  // Compute min/max from valid (non-negative) values only
-  int16_t mn = 127, mx = 0;
-  for (uint8_t i = 0; i < count; i++) {
-    if (data->values[i] >= 0) {
-      if (data->values[i] < mn) mn = data->values[i];
-      if (data->values[i] > mx) mx = data->values[i];
+  // Compute min/max — either fixed by config or derived from the data
+  int16_t mn, mx;
+  if (data->config.fixed_range) {
+    mn = data->config.fixed_min;
+    mx = data->config.fixed_max;
+  } else {
+    mn = 127; mx = 0;
+    for (uint8_t i = 0; i < count; i++) {
+      if (data->values[i] >= 0) {
+        if (data->values[i] < mn) mn = data->values[i];
+        if (data->values[i] > mx) mx = data->values[i];
+      }
     }
+    if (mn > mx) { mn = 0; mx = 127; } // all invalid — nothing meaningful to draw
   }
-  if (mn > mx) { mn = 0; mx = 127; } // all invalid — nothing meaningful to draw
 
   graphics_context_set_stroke_color(ctx, GColorWhite);
   graphics_context_set_stroke_width(ctx, 1);
@@ -143,50 +149,28 @@ static void prv_draw_data(GContext *ctx, GraphData *data) {
     }
 
     case GRAPH_STYLE_FILLED: {
-      // Build a closed polygon for fill.
-      // Invalid samples at the edges (no valid neighbour on one side) are zeroed
-      // to y_bot.  Invalid samples with valid data on BOTH sides are skipped so
-      // the polygon edge runs straight from the last valid point to the next —
-      // no dip, no fill artefact.
-      GPoint points[GRAPH_MAX_VALUES + 2];
-      uint16_t n = 0;
+      // For each valid segment, walk every pixel column from y_bot up to the
+      // interpolated line height and stamp a checkerboard (every other pixel white).
+      for (uint8_t i = 1; i < count; i++) {
+        if (data->values[i - 1] < 0 || data->values[i] < 0) continue;
 
-      int16_t x_left  = prv_index_to_x(0,         count, plot); // oldest = leftmost
-      int16_t x_right = prv_index_to_x(count - 1, count, plot); // newest = rightmost
+        // ax/ay = older sample (left endpoint), bx/by = newer sample (right endpoint)
+        int16_t ax = prv_index_to_x(prv_arr_to_disp(i,     count), count, plot);
+        int16_t ay = prv_value_to_y(data->values[i],     mn, mx, plot);
+        int16_t bx = prv_index_to_x(prv_arr_to_disp(i - 1, count), count, plot);
+        int16_t by = prv_value_to_y(data->values[i - 1], mn, mx, plot);
 
-      points[n++] = GPoint(x_left, y_bot); // bottom-left anchor
-
-      // Walk oldest→newest (array index count-1 down to 0)
-      for (int i = (int)count - 1; i >= 0; i--) {
-        int16_t x = prv_index_to_x(prv_arr_to_disp((uint8_t)i, count), count, plot);
-
-        if (data->values[i] >= 0) {
-          points[n++] = GPoint(x, prv_value_to_y(data->values[i], mn, mx, plot));
-        } else {
-          // Determine whether valid data exists on the older side (higher indices)
-          // and the newer side (lower indices).
-          bool has_older = false, has_newer = false;
-          for (int j = i + 1; j < (int)count && !has_older; j++)
-            if (data->values[j] >= 0) has_older = true;
-          for (int j = i - 1; j >= 0 && !has_newer; j--)
-            if (data->values[j] >= 0) has_newer = true;
-
-          if (has_older && has_newer) {
-            // Middle gap: skip — polygon edge draws straight across
-          } else {
-            // Edge gap: collapse to bottom of y-axis
-            points[n++] = GPoint(x, y_bot);
+        for (int16_t x = ax; x <= bx; x++) {
+          int16_t ceil_y = (bx > ax)
+            ? ay + (int16_t)((int32_t)(by - ay) * (x - ax) / (bx - ax))
+            : (ay < by ? ay : by);
+          for (int16_t y = y_bot; y >= ceil_y; y--) {
+            if (((x / GRAPH_FILL_CHECKER_SIZE) + (y / GRAPH_FILL_CHECKER_SIZE)) % 2 == 0) {
+              graphics_draw_pixel(ctx, GPoint(x, y));
+            }
           }
         }
       }
-
-      points[n++] = GPoint(x_right, y_bot); // bottom-right anchor
-
-      GPathInfo path_info = { .num_points = n, .points = points };
-      GPath *path = gpath_create(&path_info);
-      graphics_context_set_fill_color(ctx, GColorWhite);
-      gpath_draw_filled(ctx, path);
-      gpath_destroy(path);
       break;
     }
   }

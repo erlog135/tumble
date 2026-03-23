@@ -4,6 +4,7 @@
 typedef struct {
   MiniviewConfig config;
   GBitmap *icon_bitmap;
+  GBitmap *column_bitmaps[3];
   char tiny_text[12];
   char small_text[12];
 } MiniviewData;
@@ -12,6 +13,7 @@ typedef struct {
 #define BORDER_DOT_WIDTH 3
 #define BORDER_DECORATION_INNER_MARGIN 3
 #define DOT_RING_INSET 7  // inset from inner_radius to the centre of the dot/icon ring
+#define ICON_COLUMN_SPACING 15  // pixels between the middle icon and each outer icon
 
 static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius) {
   graphics_context_set_fill_color(ctx, GColorWhite);
@@ -157,12 +159,11 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
     }
 
     case MINIVIEW_MODE_ICON_COLUMN: {
-      if (data->icon_bitmap) {
-        int16_t spread = inner_radius / 2;
-        int16_t offsets_y[3] = { -spread, 0, spread };
-        for (int i = 0; i < 3; i++) {
+      int16_t offsets_y[3] = { -ICON_COLUMN_SPACING, 0, ICON_COLUMN_SPACING };
+      for (int i = 0; i < 3; i++) {
+        if (data->column_bitmaps[i]) {
           GPoint icon_center = GPoint(center.x, center.y + offsets_y[i]);
-          prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
+          prv_draw_icon_centered_at(ctx, data->column_bitmaps[i], icon_center, GCompOpAssignInverted);
         }
       }
       break;
@@ -175,14 +176,20 @@ Layer *miniview_create(GRect bounds, MiniviewConfig config) {
   MiniviewData *data = layer_get_data(layer);
   data->config = config;
 
-  bool needs_icon = config.mode == MINIVIEW_MODE_ICON_TEXT
-                 || config.mode == MINIVIEW_MODE_ICON_CENTER
-                 || config.mode == MINIVIEW_MODE_CLOCK_DOTS
-                 || config.mode == MINIVIEW_MODE_ICON_COLUMN;
+  bool needs_single_icon = config.mode == MINIVIEW_MODE_ICON_TEXT
+                        || config.mode == MINIVIEW_MODE_ICON_CENTER
+                        || config.mode == MINIVIEW_MODE_CLOCK_DOTS;
 
-  data->icon_bitmap = (needs_icon && config.icon_resource_id != 0)
+  data->icon_bitmap = (needs_single_icon && config.icon_resource_id != 0)
     ? gbitmap_create_with_resource(config.icon_resource_id)
     : NULL;
+
+  for (int i = 0; i < 3; i++) {
+    data->column_bitmaps[i] = (config.mode == MINIVIEW_MODE_ICON_COLUMN
+                               && config.column_icon_resource_ids[i] != 0)
+      ? gbitmap_create_with_resource(config.column_icon_resource_ids[i])
+      : NULL;
+  }
 
   data->tiny_text[0] = '\0';
   data->small_text[0] = '\0';
@@ -230,10 +237,28 @@ void miniview_set_icon_angle(Layer *layer, int32_t angle) {
   layer_mark_dirty(layer);
 }
 
+void miniview_set_column_icon(Layer *layer, int index, uint32_t resource_id) {
+  if (index < 0 || index >= 3) return;
+  MiniviewData *data = layer_get_data(layer);
+  if (data->column_bitmaps[index]) {
+    gbitmap_destroy(data->column_bitmaps[index]);
+    data->column_bitmaps[index] = NULL;
+  }
+  if (resource_id != 0) {
+    data->column_bitmaps[index] = gbitmap_create_with_resource(resource_id);
+  }
+  layer_mark_dirty(layer);
+}
+
 void miniview_destroy(Layer *layer) {
   MiniviewData *data = layer_get_data(layer);
   if (data->icon_bitmap) {
     gbitmap_destroy(data->icon_bitmap);
+  }
+  for (int i = 0; i < 3; i++) {
+    if (data->column_bitmaps[i]) {
+      gbitmap_destroy(data->column_bitmaps[i]);
+    }
   }
   layer_destroy(layer);
 }

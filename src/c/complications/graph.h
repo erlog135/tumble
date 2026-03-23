@@ -1,8 +1,12 @@
 #pragma once
 #include <pebble.h>
 
-// How far axis tick marks extend inward (pixels)
-#define GRAPH_MARKER_SIZE 3
+// How far bottom-axis tick marks extend upward (pixels)
+#define GRAPH_H_MARKER_SIZE 3
+// How far side-axis tick marks extend inward (pixels)
+#define GRAPH_V_MARKER_SIZE 6
+// Size of each checker square in the filled graph mode (1 = single pixel, 2 = 2x2 blocks, etc.)
+#define GRAPH_FILL_CHECKER_SIZE 2
 // Gap between the header icon and label text (pixels)
 #define GRAPH_HEADER_ICON_TEXT_GAP 4
 // Maximum number of data values the graph can hold (matches HISTORY_24H_LEN / HISTORY_4H_LEN)
@@ -21,6 +25,9 @@ typedef struct {
   uint8_t h_markers;         // tick marks evenly spaced along the bottom axis
   uint8_t v_markers;         // tick marks evenly spaced along both vertical edges
   bool top_lip;              // tick marks at the top of both vertical edges
+  bool fixed_range;          // if true, use fixed_min/fixed_max instead of auto scaling
+  int8_t fixed_min;          // lower bound when fixed_range is true
+  int8_t fixed_max;          // upper bound when fixed_range is true
   GFont label_font;
   uint32_t icon_resource_id; // icon shown to the left of label_text in the header
   const char *label_text;

@@ -153,6 +153,9 @@ void time_display_set_time(Layer *layer, struct tm *tick_time) {
   TimeDisplayData *data = layer_get_data(layer);
   strftime(data->time_str, sizeof(data->time_str),
     clock_is_24h_style() ? "%H:%M" : "%I:%M", tick_time);
+  if (!clock_is_24h_style() && data->time_str[0] == '0') {
+    memmove(data->time_str, data->time_str + 1, strlen(data->time_str));
+  }
 
   if (data->seconds_visible || data->seconds_reserved) {
     int16_t glyph_w = prv_glyph_total_width(data->time_str);
