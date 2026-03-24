@@ -45,7 +45,11 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
   int16_t gap = (icon_sz.w > 0 && text_sz.w > 0) ? GRAPH_HEADER_ICON_TEXT_GAP : 0;
   int16_t group_w = icon_sz.w + gap + text_sz.w;
   int16_t center_y = TINY_FONT_HEIGHT / 2;
+#ifdef PBL_ROUND
+  int16_t cur_x = bounds.size.w - group_w;
+#else
   int16_t cur_x = (bounds.size.w - group_w) / 2;
+#endif
 
   if (data->icon_bitmap) {
     GRect icon_rect = GRect(cur_x, center_y - icon_sz.h / 2, icon_sz.w, icon_sz.h);
@@ -139,12 +143,22 @@ static void prv_draw_data(GContext *ctx, GraphData *data) {
     }
 
     case GRAPH_STYLE_BARS: {
+      // Bars are anchored to the right edge (newest data) and spaced at fixed
+      // intervals leftward. Capturing all data is lowest priority — bars that
+      // fall outside the left edge are simply skipped.
+      int16_t step = (int16_t)(GRAPH_BAR_WIDTH + GRAPH_BAR_SPACING);
+      int16_t x_right = plot.origin.x + plot.size.w - 1;
+
+      graphics_context_set_stroke_width(ctx, GRAPH_BAR_WIDTH);
       for (uint8_t i = 0; i < count; i++) {
+        // i == 0 is newest; place it at the right, older bars extend left
+        int16_t bx = x_right - (int16_t)i * step;
+        if (bx < plot.origin.x) break; // off the left edge — stop
         if (data->values[i] < 0) continue;
-        int16_t bx = prv_index_to_x(prv_arr_to_disp(i, count), count, plot);
         int16_t by = prv_value_to_y(data->values[i], mn, mx, plot);
         graphics_draw_line(ctx, GPoint(bx, y_bot), GPoint(bx, by));
       }
+      graphics_context_set_stroke_width(ctx, 1);
       break;
     }
 

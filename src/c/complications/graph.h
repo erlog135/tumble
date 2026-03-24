@@ -9,6 +9,10 @@
 #define GRAPH_FILL_CHECKER_SIZE 2
 // Gap between the header icon and label text (pixels)
 #define GRAPH_HEADER_ICON_TEXT_GAP 4
+// Stroke thickness of each bar in GRAPH_STYLE_BARS (pixels)
+#define GRAPH_BAR_WIDTH 1
+// Gap between bars in GRAPH_STYLE_BARS (pixels); matches bar width by default
+#define GRAPH_BAR_SPACING 2
 // Maximum number of data values the graph can hold (matches HISTORY_24H_LEN / HISTORY_4H_LEN)
 #define GRAPH_MAX_VALUES 24
 // Maximum length of dynamic label text in header

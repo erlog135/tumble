@@ -265,7 +265,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
 
   switch (slot) {
     case COMPLICATION_GRAPH: {
-      GraphStyle style = (option == GRAPH_OPTION_ALTITUDE || option == GRAPH_OPTION_TEMPERATURE)
+      GraphStyle style = (option == GRAPH_OPTION_ALTITUDE)
         ? GRAPH_STYLE_FILLED : GRAPH_STYLE_LINE;
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {

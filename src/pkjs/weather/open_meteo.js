@@ -76,10 +76,7 @@ function fetch(lat, lon) {
   if (cached && (Date.now() - cached.timestamp) < intervalMs) {
     console.log('Weather: sending cached data (age=' +
       Math.round((Date.now() - cached.timestamp) / 1000) + 's)');
-    // Re-encode with current day/night so the icon stays accurate across
-    // a sunrise or sunset during a long cache interval.
-    sendWeather(cached.tempF, cached.pressure,
-      wmoToCondition(cached.weatherCode, solar.isDaytime(lat, lon)));
+    sendWeather(cached.tempF, cached.pressure, cached.condition);
     return;
   }
 
@@ -103,19 +100,19 @@ function fetch(lat, lon) {
       return;
     }
 
-    var current     = data.current;
-    var tempF       = celsiusToFahrenheit(current.temperature_2m);
-    var pressure    = Math.round(current.surface_pressure);
-    var weatherCode = current.weather_code;
+    var current   = data.current;
+    var tempF     = celsiusToFahrenheit(current.temperature_2m);
+    var pressure  = Math.round(current.surface_pressure);
+    var condition = wmoToCondition(current.weather_code, solar.isDaytime(lat, lon));
 
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      tempF:       tempF,
-      pressure:    pressure,
-      weatherCode: weatherCode,
-      timestamp:   Date.now()
+      tempF:     tempF,
+      pressure:  pressure,
+      condition: condition,
+      timestamp: Date.now()
     }));
 
-    sendWeather(tempF, pressure, wmoToCondition(weatherCode, solar.isDaytime(lat, lon)));
+    sendWeather(tempF, pressure, condition);
   };
   xhr.onerror = function() {
     console.log('Weather: network error fetching ' + url);
