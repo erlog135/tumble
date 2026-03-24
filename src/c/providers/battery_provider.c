@@ -66,7 +66,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
   s_slots[slot].option = option;
 
   Layout *layout = providers_get_layout();
-  GFont font_20 = providers_get_font_20();
+  GFont font_small = providers_get_font_small();
   Layer *window_layer = providers_get_window_layer();
   Layer *layer = NULL;
 
@@ -82,7 +82,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
         .fixed_range = true,
         .fixed_min = 0,
         .fixed_max = 100,
-        .label_font = font_20,
+        .label_font = font_small,
         .icon_resource_id = prv_battery_icon(state.charge_percent),
       });
       prv_update_graph(layer);
@@ -125,7 +125,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = BOTTOM_MODE_ICON_ONLY,
         .align = align,
-        .font = font_20,
+        .font = font_small,
         .icon_resource_id = prv_battery_icon(bstate.charge_percent),
       });
       break;

@@ -12,7 +12,7 @@ static void prv_default_settings(void) {
     settings.unit_temp = UNIT_TEMP_F;
     settings.unit_altitude = UNIT_ALTITUDE_FT;
     settings.unit_pressure = UNIT_PRESSURE_MB;
-    settings.miniview_option = MINIVIEW_OPTION_DATE_DOW_DATE;
+    settings.miniview_option = MINIVIEW_OPTION_SUN_POSITION;
     settings.graph_option = GRAPH_OPTION_BATTERY;
     settings.seconds_option = SECONDS_OPTION_ALWAYS_ON;
     settings.bottom_left_option = BOTTOM_OPTION_SUNRISE_SUNSET;

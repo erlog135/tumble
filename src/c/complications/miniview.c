@@ -5,14 +5,20 @@ typedef struct {
   MiniviewConfig config;
   GBitmap *icon_bitmap;
   GBitmap *column_bitmaps[3];
-  char tiny_text[12];
   char small_text[12];
+  char medium_text[12];
 } MiniviewData;
 
 #define BORDER_ARC_DEGREES 80
 #define BORDER_DOT_WIDTH 3
 #define BORDER_DECORATION_INNER_MARGIN 3
-#define DOT_RING_INSET 7  // inset from inner_radius to the centre of the dot/icon ring
+
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+#define DOT_RING_INSET 10  // inset from inner_radius to the centre of the dot/icon ring
+#else
+#define DOT_RING_INSET 7
+#endif
+
 #define ICON_COLUMN_SPACING 15  // pixels between the middle icon and each outer icon
 
 static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius) {
@@ -83,11 +89,11 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:
       graphics_context_set_text_color(ctx, GColorBlack);
-      graphics_draw_text(ctx, data->tiny_text, data->config.tiny_font,
-        data->config.tiny_text_bounds,
-        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
       graphics_draw_text(ctx, data->small_text, data->config.small_font,
         data->config.small_text_bounds,
+        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+      graphics_draw_text(ctx, data->medium_text, data->config.medium_font,
+        data->config.medium_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
       break;
 
@@ -100,8 +106,8 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
       }
       graphics_context_set_text_color(ctx, GColorBlack);
-      graphics_draw_text(ctx, data->small_text, data->config.small_font,
-        data->config.small_text_bounds,
+      graphics_draw_text(ctx, data->medium_text, data->config.medium_font,
+        data->config.medium_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
       break;
     }
@@ -191,24 +197,24 @@ Layer *miniview_create(GRect bounds, MiniviewConfig config) {
       : NULL;
   }
 
-  data->tiny_text[0] = '\0';
   data->small_text[0] = '\0';
+  data->medium_text[0] = '\0';
 
   layer_set_update_proc(layer, miniview_update_proc);
   return layer;
-}
-
-void miniview_set_tiny_text(Layer *layer, const char *text) {
-  MiniviewData *data = layer_get_data(layer);
-  strncpy(data->tiny_text, text, sizeof(data->tiny_text) - 1);
-  data->tiny_text[sizeof(data->tiny_text) - 1] = '\0';
-  layer_mark_dirty(layer);
 }
 
 void miniview_set_small_text(Layer *layer, const char *text) {
   MiniviewData *data = layer_get_data(layer);
   strncpy(data->small_text, text, sizeof(data->small_text) - 1);
   data->small_text[sizeof(data->small_text) - 1] = '\0';
+  layer_mark_dirty(layer);
+}
+
+void miniview_set_medium_text(Layer *layer, const char *text) {
+  MiniviewData *data = layer_get_data(layer);
+  strncpy(data->medium_text, text, sizeof(data->medium_text) - 1);
+  data->medium_text[sizeof(data->medium_text) - 1] = '\0';
   layer_mark_dirty(layer);
 }
 

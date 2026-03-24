@@ -10,27 +10,46 @@
 #define MID_SECTION_HEIGHT_RATIO 0.40f
 #define BOTTOM_SECTION_HEIGHT_RATIO 0.20f
 
-#define ROUND_SCREEN_INSET_X 20
-#define ROUND_SCREEN_INSET_Y 10
+#if defined(PBL_PLATFORM_GABBRO)
+  #define ROUND_SCREEN_INSET_X 30
+  #define ROUND_SCREEN_INSET_Y 15
+#else
+  #define ROUND_SCREEN_INSET_X 20
+  #define ROUND_SCREEN_INSET_Y 10
+#endif
 
 #define SECTION_MARGIN 2
 #define GRAPH_PLOT_MARGIN 4
 
-#define TIME_FONT_HEIGHT 50
-#define SMALL_FONT_HEIGHT 24
-#define TINY_FONT_HEIGHT 22
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+  #define SMALL_FONT_HEIGHT  28
+  #define MEDIUM_FONT_HEIGHT 36
+#else
+  #define SMALL_FONT_HEIGHT  22
+  #define MEDIUM_FONT_HEIGHT 24
+#endif
+
 #define SECONDS_LAYER_WIDTH 16
 
 #define SMALL_FONT_BOTTOM_MARGIN 4
 
-#define TIME_GLYPH_SHEET_RESOURCE_ID RESOURCE_ID_SHEET_GLYPHS_52
-
-#define TIME_BITMAP_SIZE GSize(304, 52)
-#define BITMAP_GLYPH_WIDTH 28
-#define BITMAP_GLYPH_HEIGHT 52
-#define GLYPH_NUMERAL_MARGIN_X 1
-#define GLYPH_COLON_MARGIN_X 8
-#define GLYPH_SPACING_X 2
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+  #define TIME_GLYPH_SHEET_RESOURCE_ID RESOURCE_ID_SHEET_GLYPHS_66
+  #define TIME_BITMAP_SIZE GSize(440, 66)
+  #define BITMAP_GLYPH_WIDTH 40
+  #define BITMAP_GLYPH_HEIGHT 66
+  #define GLYPH_NUMERAL_MARGIN_X 2
+  #define GLYPH_COLON_MARGIN_X 16
+  #define GLYPH_SPACING_X 2
+#else
+  #define TIME_GLYPH_SHEET_RESOURCE_ID RESOURCE_ID_SHEET_GLYPHS_52
+  #define TIME_BITMAP_SIZE GSize(304, 52)
+  #define BITMAP_GLYPH_WIDTH 28
+  #define BITMAP_GLYPH_HEIGHT 52
+  #define GLYPH_NUMERAL_MARGIN_X 1
+  #define GLYPH_COLON_MARGIN_X 8
+  #define GLYPH_SPACING_X 2
+#endif
 
 #define GLYPH_NUMERAL_DISPLAY_WIDTH (BITMAP_GLYPH_WIDTH - 2 * GLYPH_NUMERAL_MARGIN_X)
 #define GLYPH_COLON_DISPLAY_WIDTH (BITMAP_GLYPH_WIDTH - 2 * GLYPH_COLON_MARGIN_X)
@@ -45,8 +64,8 @@ typedef struct {
     GRect graph_layer_bounds;
     GRect graph_plot_bounds;
     GRect miniview_bounds;
-    GRect miniview_tiny_text_bounds;
     GRect miniview_small_text_bounds;
+    GRect miniview_medium_text_bounds;
 
     GRect time_layer_bounds;
     GRect time_display_bounds;

@@ -125,8 +125,8 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
 #endif
 
   Layout *layout = providers_get_layout();
-  GFont font_20 = providers_get_font_20();
-  GFont font_28 = providers_get_font_28();
+  GFont font_small = providers_get_font_small();
+  GFont font_medium = providers_get_font_medium();
   Layer *window_layer = providers_get_window_layer();
   Layer *layer = NULL;
 
@@ -140,7 +140,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
         .h_markers = 3,
         .v_markers = 3,
         .top_lip = true,
-        .label_font = font_20,
+        .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
       });
       prv_update_graph(layer, option);
@@ -149,16 +149,16 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_MINIVIEW: {
       layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
         .mode = MINIVIEW_MODE_ICON_TEXT,
-        .tiny_text_bounds = layout->miniview_tiny_text_bounds,
         .small_text_bounds = layout->miniview_small_text_bounds,
-        .tiny_font = font_20,
-        .small_font = font_28,
+        .medium_text_bounds = layout->miniview_medium_text_bounds,
+        .small_font = font_small,
+        .medium_font = font_medium,
         .icon_resource_id = prv_icon_for_miniview_option(option),
       });
       const char *miniview_init = (option == MINIVIEW_OPTION_CALORIES) ? "----"
                                : (option == MINIVIEW_OPTION_STEPS)    ? "-----"
                                : "--";
-      miniview_set_small_text(layer, miniview_init);
+      miniview_set_medium_text(layer, miniview_init);
       break;
     }
     case COMPLICATION_BOTTOM_LEFT:
@@ -170,7 +170,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = BOTTOM_MODE_ICON_TEXT,
         .align = align,
-        .font = font_20,
+        .font = font_small,
         .icon_resource_id = prv_icon_for_bottom_option(option),
       });
       const char *bottom_init = (option == BOTTOM_OPTION_CALORIES) ? "----"
@@ -238,7 +238,7 @@ static void prv_update_miniview(Layer *layer, uint8_t option) {
   (void)option;
 #endif
 
-  miniview_set_small_text(layer, buf);
+  miniview_set_medium_text(layer, buf);
 }
 
 static void prv_update_bottom(Layer *layer, uint8_t option) {

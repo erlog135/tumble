@@ -39,12 +39,12 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
     : (data->config.label_text ? data->config.label_text : "");
   GSize text_sz = graphics_text_layout_get_content_size(
     label, data->config.label_font,
-    GRect(0, 0, bounds.size.w, TINY_FONT_HEIGHT),
+    GRect(0, 0, bounds.size.w, SMALL_FONT_HEIGHT),
     GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
 
   int16_t gap = (icon_sz.w > 0 && text_sz.w > 0) ? GRAPH_HEADER_ICON_TEXT_GAP : 0;
   int16_t group_w = icon_sz.w + gap + text_sz.w;
-  int16_t center_y = TINY_FONT_HEIGHT / 2;
+  int16_t center_y = SMALL_FONT_HEIGHT / 2;
 #ifdef PBL_ROUND
   int16_t cur_x = bounds.size.w - group_w;
 #else

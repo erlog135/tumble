@@ -23,17 +23,17 @@ void layout_init(Layout *layout, GRect bounds) {
     // plot_bounds is in graph layer-local coordinates (origin 0,0)
     layout->graph_plot_bounds = GRect(
         GRAPH_PLOT_MARGIN,
-        TINY_FONT_HEIGHT,
+        SMALL_FONT_HEIGHT,
         layout->graph_layer_bounds.size.w - GRAPH_PLOT_MARGIN * 2,
-        layout->graph_layer_bounds.size.h - TINY_FONT_HEIGHT - GRAPH_PLOT_MARGIN
+        layout->graph_layer_bounds.size.h - SMALL_FONT_HEIGHT - GRAPH_PLOT_MARGIN
     );
 
     layout->miniview_bounds = grect_inset(miniview_rect, GEdgeInsets(SECTION_MARGIN));
     // text bounds are in miniview layer-local coordinates (origin 0,0)
-    layout->miniview_tiny_text_bounds  = GRect(0, MINIVIEW_BORDER_SIZE,
-        layout->miniview_bounds.size.w, TINY_FONT_HEIGHT);
-    layout->miniview_small_text_bounds = GRect(0, TINY_FONT_HEIGHT,
+    layout->miniview_small_text_bounds  = GRect(0, MINIVIEW_BORDER_SIZE,
         layout->miniview_bounds.size.w, SMALL_FONT_HEIGHT);
+    layout->miniview_medium_text_bounds = GRect(0, SMALL_FONT_HEIGHT,
+        layout->miniview_bounds.size.w, MEDIUM_FONT_HEIGHT);
 
     layout->time_layer_bounds = grect_inset(layout->mid_section_bounds, GEdgeInsets(SECTION_MARGIN, 0));
     layout->time_display_bounds = GRect(
@@ -46,7 +46,7 @@ void layout_init(Layout *layout, GRect bounds) {
         layout->time_layer_bounds.origin.x + layout->time_layer_bounds.size.w - SECONDS_LAYER_WIDTH,
         layout->time_layer_bounds.origin.y,
         SECONDS_LAYER_WIDTH,
-        TINY_FONT_HEIGHT
+        SMALL_FONT_HEIGHT
     );
 
     // Both bottom widgets share the full-width bounds so centering across both is unclipped

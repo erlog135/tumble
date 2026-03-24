@@ -12,8 +12,8 @@ static Layer *s_debug_layer;
 #endif
 
 static Layout s_layout;
-static GFont s_font_28;
-static GFont s_font_20;
+static GFont s_font_medium;
+static GFont s_font_small;
 static GFont s_font_seconds;
 
 static void update_time(void) {
@@ -182,10 +182,17 @@ static void main_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect bounds = layer_get_bounds(window_layer);
 
-    s_font_28 = fonts_load_custom_font(
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+    s_font_medium = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_BEBAS_NEUE_36));
+    s_font_small = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
-    s_font_20 = fonts_load_custom_font(
+#else
+    s_font_medium = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_BEBAS_NEUE_28));
+    s_font_small = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_BEBAS_NEUE_20));
+#endif
     s_font_seconds = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_NUMS_THIN_16));
 
@@ -195,7 +202,7 @@ static void main_window_load(Window *window) {
         s_layout.time_layer_bounds, s_font_seconds);
     layer_add_child(window_layer, s_time_display_layer);
 
-    providers_init(window_layer, &s_layout, s_font_20, s_font_28);
+    providers_init(window_layer, &s_layout, s_font_small, s_font_medium);
     providers_apply_settings();
 
 #if DRAW_DEBUG_RECTANGLES
@@ -215,8 +222,8 @@ static void main_window_unload(Window *window) {
 #endif
     providers_deinit();
     time_display_destroy(s_time_display_layer);
-    fonts_unload_custom_font(s_font_28);
-    fonts_unload_custom_font(s_font_20);
+    fonts_unload_custom_font(s_font_medium);
+    fonts_unload_custom_font(s_font_small);
     fonts_unload_custom_font(s_font_seconds);
 }
 

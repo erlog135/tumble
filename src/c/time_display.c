@@ -101,11 +101,12 @@ Layer *time_display_create(GRect bounds, GFont seconds_font) {
   data->seconds_reserved = true;
 
   /* Seconds layer (drawn first, behind) */
+  int16_t glyph_top = (bounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
   GRect seconds_bounds = GRect(
     bounds.size.w - SECONDS_LAYER_WIDTH,
-    0,
+    glyph_top,
     SECONDS_LAYER_WIDTH,
-    TINY_FONT_HEIGHT
+    SMALL_FONT_HEIGHT
   );
   data->seconds_layer = text_layer_create(seconds_bounds);
   text_layer_set_background_color(data->seconds_layer, GColorClear);
@@ -161,8 +162,10 @@ void time_display_set_time(Layer *layer, struct tm *tick_time) {
     int16_t glyph_w = prv_glyph_total_width(data->time_str);
     int16_t total_w = glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH;
     int16_t start_x = (layer_get_bounds(layer).size.w - total_w) / 2;
+    GRect lbounds = layer_get_bounds(layer);
+    int16_t glyph_top = (lbounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
     layer_set_frame(text_layer_get_layer(data->seconds_layer),
-      GRect(start_x + glyph_w + GLYPH_SPACING_X, 0, SECONDS_LAYER_WIDTH, TINY_FONT_HEIGHT));
+      GRect(start_x + glyph_w + GLYPH_SPACING_X, glyph_top, SECONDS_LAYER_WIDTH, SMALL_FONT_HEIGHT));
 
     if (data->seconds_visible) {
       static char seconds_buf[3];

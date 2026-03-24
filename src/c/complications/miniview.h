@@ -13,10 +13,10 @@ typedef struct {
   MiniviewMode mode;
 
   // Used by MINIVIEW_MODE_TEXT_STACK and MINIVIEW_MODE_ICON_TEXT
-  GRect tiny_text_bounds;
   GRect small_text_bounds;
-  GFont tiny_font;
+  GRect medium_text_bounds;
   GFont small_font;
+  GFont medium_font;
 
   // Used by all single-icon modes
   uint32_t icon_resource_id;
@@ -29,8 +29,8 @@ typedef struct {
 } MiniviewConfig;
 
 Layer *miniview_create(GRect bounds, MiniviewConfig config);
-void miniview_set_tiny_text(Layer *layer, const char *text);
 void miniview_set_small_text(Layer *layer, const char *text);
+void miniview_set_medium_text(Layer *layer, const char *text);
 void miniview_set_icon_angle(Layer *layer, int32_t angle);
 void miniview_set_icon_resource_id(Layer *layer, uint32_t resource_id);
 void miniview_set_column_icon(Layer *layer, int index, uint32_t resource_id);

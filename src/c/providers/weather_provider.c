@@ -258,8 +258,8 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
   s_slots[slot].option = option;
 
   Layout *layout = providers_get_layout();
-  GFont font_20 = providers_get_font_20();
-  GFont font_28 = providers_get_font_28();
+  GFont font_small = providers_get_font_small();
+  GFont font_medium = providers_get_font_medium();
   Layer *window_layer = providers_get_window_layer();
   Layer *layer = NULL;
 
@@ -273,7 +273,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
         .h_markers = 3,
         .v_markers = 3,
         .top_lip = true,
-        .label_font = font_20,
+        .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
       });
       prv_update_graph(layer, option);
@@ -282,13 +282,13 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_MINIVIEW: {
       layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
         .mode = MINIVIEW_MODE_ICON_TEXT,
-        .tiny_text_bounds = layout->miniview_tiny_text_bounds,
         .small_text_bounds = layout->miniview_small_text_bounds,
-        .tiny_font = font_20,
-        .small_font = font_28,
+        .medium_text_bounds = layout->miniview_medium_text_bounds,
+        .small_font = font_small,
+        .medium_font = font_medium,
         .icon_resource_id = prv_icon_for_miniview_option(option),
       });
-      miniview_set_small_text(layer, "--");
+      miniview_set_medium_text(layer, "--");
       if (option == MINIVIEW_OPTION_WEATHER && s_has_data) {
         miniview_set_icon_resource_id(layer, prv_icon_for_condition(s_condition));
       }
@@ -304,7 +304,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = is_trend ? BOTTOM_MODE_ICON_ONLY : BOTTOM_MODE_ICON_TEXT,
         .align = align,
-        .font = font_20,
+        .font = font_small,
         .icon_resource_id = is_trend
           ? prv_compute_pressure_trend_icon()
           : prv_icon_for_bottom_option(option),
@@ -373,7 +373,7 @@ void weather_provider_tick(struct tm *tick_time) {
               strncpy(buf, "--", sizeof(buf));                                            break;
           }
         }
-        miniview_set_small_text(layer, buf);
+        miniview_set_medium_text(layer, buf);
         break;
       }
       case COMPLICATION_BOTTOM_LEFT:

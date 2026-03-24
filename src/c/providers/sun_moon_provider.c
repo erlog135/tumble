@@ -43,8 +43,7 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
     s_slots[slot].option = option;
 
     Layout *layout = providers_get_layout();
-    GFont font_20 = providers_get_font_20();
-    GFont font_28 = providers_get_font_28();
+    GFont font_small = providers_get_font_small();
     Layer *window_layer = providers_get_window_layer();
 
     Layer *layer = NULL;
@@ -60,10 +59,10 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
                     layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
                         .mode = MINIVIEW_MODE_ICON_TEXT,
                         .icon_resource_id = init_icon,
-                        .small_text_bounds = layout->miniview_small_text_bounds,
-                        .small_font = font_20,
+                        .medium_text_bounds = layout->miniview_medium_text_bounds,
+                        .medium_font = font_small,
                     });
-                    miniview_set_small_text(layer, "--:--");
+                    miniview_set_medium_text(layer, "--:--");
                     break;
                 }
                 case MINIVIEW_OPTION_SUN_POSITION:
@@ -97,7 +96,7 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
             layer = bottom_complication_create(bounds, (BottomConfig) {
                 .mode = BOTTOM_MODE_ICON_TEXT,
                 .align = align,
-                .font = font_20,
+                .font = font_small,
                 .icon_resource_id = init_icon,
             });
             bottom_complication_set_text(layer, "--:--");
@@ -174,7 +173,7 @@ static void prv_tick_solar(int slot, Layer *layer, struct tm *tick_time) {
             prv_format_sun_time(buf, sizeof(buf), s_sunrise_min);
             miniview_set_icon_resource_id(layer, RESOURCE_ID_ICON_SUNRISE);
         }
-        miniview_set_small_text(layer, buf);
+        miniview_set_medium_text(layer, buf);
 
     } else if (option == MINIVIEW_OPTION_SUN_POSITION && slot == COMPLICATION_MINIVIEW) {
         miniview_set_icon_angle(layer, prv_sun_trig_angle(tick_time));

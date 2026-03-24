@@ -19,7 +19,8 @@
       "chalk",
       "basalt",
       "diorite",
-      "emery"
+      "emery",
+      "gabbro"
     ],
     "watchapp": {
       "watchface": true
@@ -58,6 +59,11 @@
         },
         {
           "type": "font",
+          "name": "BEBAS_NEUE_36",
+          "file": "fonts/BebasNeue-Regular.ttf"
+        },
+        {
+          "type": "font",
           "name": "BEBAS_NEUE_28",
           "file": "fonts/BebasNeue-Regular.ttf"
         },
@@ -82,6 +88,11 @@
           "type": "bitmap",
           "name": "SHEET_GLYPHS_52",
           "file": "fonts/bitmaps/BebasNeue52.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "SHEET_GLYPHS_66",
+          "file": "fonts/bitmaps/BebasNeue66.png"
         },
         {
           "type": "bitmap",

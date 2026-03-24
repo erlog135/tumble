@@ -18,8 +18,8 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
     s_slots[slot].option = option;
 
     Layout *layout = providers_get_layout();
-    GFont font_20 = providers_get_font_20();
-    GFont font_28 = providers_get_font_28();
+    GFont font_small = providers_get_font_small();
+    GFont font_medium = providers_get_font_medium();
     Layer *window_layer = providers_get_window_layer();
 
     Layer *layer = NULL;
@@ -28,10 +28,10 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
         case COMPLICATION_MINIVIEW: {
             layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
                 .mode = MINIVIEW_MODE_TEXT_STACK,
-                .tiny_text_bounds = layout->miniview_tiny_text_bounds,
                 .small_text_bounds = layout->miniview_small_text_bounds,
-                .tiny_font = font_20,
-                .small_font = font_28,
+                .medium_text_bounds = layout->miniview_medium_text_bounds,
+                .small_font = font_small,
+                .medium_font = font_medium,
             });
             break;
         }
@@ -44,7 +44,7 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
             layer = bottom_complication_create(bounds, (BottomConfig) {
                 .mode = BOTTOM_MODE_TEXT_ONLY,
                 .align = align,
-                .font = font_20,
+                .font = font_small,
             });
             break;
         }
@@ -103,8 +103,8 @@ void time_provider_tick(struct tm *tick_time) {
                         small[0] = '\0';
                         break;
                 }
-                miniview_set_tiny_text(layer, tiny);
-                miniview_set_small_text(layer, small);
+                miniview_set_small_text(layer, tiny);
+                miniview_set_medium_text(layer, small);
                 break;
             }
             case COMPLICATION_BOTTOM_LEFT:
