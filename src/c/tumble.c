@@ -145,6 +145,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
             s->bottom_left_option = (uint8_t)prv_tuple_int(t);
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_BOTTOM_RIGHT_OPTION)))
             s->bottom_right_option = (uint8_t)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_TZ_OFFSET)))
+            s->tz_offset_minutes = (int16_t)prv_tuple_int(t);
 
         settings_save();
 

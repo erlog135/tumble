@@ -2,8 +2,7 @@
 #include <pebble.h>
 
 typedef enum {
-    WEATHER_OPTION_WEATHERKIT  = 0,
-    WEATHER_OPTION_OPEN_METEO  = 1,
+    WEATHER_OPTION_OPEN_METEO = 0,
 } WeatherOption;
 
 typedef enum {
@@ -67,6 +66,7 @@ typedef enum {
     BOTTOM_OPTION_SUNRISE_SUNSET   = 8,
     BOTTOM_OPTION_TEMPERATURE      = 9,
     BOTTOM_OPTION_BATTERY          = 10,
+    BOTTOM_OPTION_CUSTOM_TZ        = 11,
 } BottomOption;
 
 typedef struct {
@@ -82,6 +82,7 @@ typedef struct {
     uint8_t seconds_option;
     uint8_t bottom_left_option;
     uint8_t bottom_right_option;
+    int16_t tz_offset_minutes;
 } ClaySettings;
 
 void settings_init(void);

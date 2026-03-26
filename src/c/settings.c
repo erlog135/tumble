@@ -7,11 +7,12 @@ static ClaySettings settings;
 static void prv_default_settings(void) {
     settings.black_bg = true;
     settings.invert_miniview = true;
-    settings.weather_option = WEATHER_OPTION_WEATHERKIT;
+    settings.weather_option = WEATHER_OPTION_OPEN_METEO;
     settings.weather_refresh_interval = 30;
     settings.unit_temp = UNIT_TEMP_F;
     settings.unit_altitude = UNIT_ALTITUDE_FT;
     settings.unit_pressure = UNIT_PRESSURE_MB;
+    settings.tz_offset_minutes = 0;
     settings.miniview_option = MINIVIEW_OPTION_SUN_POSITION;
     settings.graph_option = GRAPH_OPTION_BATTERY;
     settings.seconds_option = SECONDS_OPTION_ALWAYS_ON;
@@ -28,6 +29,7 @@ void settings_load(void) {
     prv_default_settings();
     // Read settings from persistent storage, if they exist
     persist_read_data(SETTINGS_KEY, &settings, sizeof(settings));
+    settings.weather_option = WEATHER_OPTION_OPEN_METEO;
 }
 
 void settings_save(void) {

@@ -26,13 +26,20 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
 
     switch (slot) {
         case COMPLICATION_MINIVIEW: {
-            layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
-                .mode = MINIVIEW_MODE_TEXT_STACK,
+            MiniviewConfig cfg = {
                 .small_text_bounds = layout->miniview_small_text_bounds,
                 .medium_text_bounds = layout->miniview_medium_text_bounds,
                 .small_font = font_small,
                 .medium_font = font_medium,
-            });
+            };
+            if (option == MINIVIEW_OPTION_CUSTOM_TZ) {
+                cfg.mode = MINIVIEW_MODE_ICON_TEXT;
+                cfg.icon_resource_id = RESOURCE_ID_ICON_GLOBE;
+                cfg.medium_font = font_small;
+            } else {
+                cfg.mode = MINIVIEW_MODE_TEXT_STACK;
+            }
+            layer = miniview_create(layout->miniview_bounds, cfg);
             break;
         }
         case COMPLICATION_BOTTOM_LEFT:
@@ -41,11 +48,17 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
                 ? layout->bottom_left_bounds : layout->bottom_right_bounds;
             BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
                 ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
-            layer = bottom_complication_create(bounds, (BottomConfig) {
-                .mode = BOTTOM_MODE_TEXT_ONLY,
+            BottomConfig cfg = {
                 .align = align,
                 .font = font_small,
-            });
+            };
+            if (option == BOTTOM_OPTION_CUSTOM_TZ) {
+                cfg.mode = BOTTOM_MODE_ICON_TEXT;
+                cfg.icon_resource_id = RESOURCE_ID_ICON_GLOBE;
+            } else {
+                cfg.mode = BOTTOM_MODE_TEXT_ONLY;
+            }
+            layer = bottom_complication_create(bounds, cfg);
             break;
         }
         default:
@@ -72,6 +85,18 @@ static void prv_upper(char *s) {
     }
 }
 
+static void prv_format_tz_time(char *buf, size_t sz, struct tm *tz_tm) {
+    if (clock_is_24h_style()) {
+        strftime(buf, sz, "%H:%M", tz_tm);
+    } else {
+        char tmp[8];
+        strftime(tmp, sizeof(tmp), "%I:%M", tz_tm);
+        const char *h = (tmp[0] == '0') ? tmp + 1 : tmp;
+        const char *ap = (tz_tm->tm_hour < 12) ? "a" : "p";
+        snprintf(buf, sz, "%s %s", h, ap);
+    }
+}
+
 void time_provider_tick(struct tm *tick_time) {
     for (int i = 0; i < COMPLICATION_COUNT; i++) {
         if (!s_slots[i].active) continue;
@@ -94,10 +119,14 @@ void time_provider_tick(struct tm *tick_time) {
                         prv_upper(tiny);
                         strftime(small, sizeof(small), "%d", tick_time);
                         break;
-                    case MINIVIEW_OPTION_CUSTOM_TZ:
-                        strncpy(tiny, "UTC", sizeof(tiny));
-                        strftime(small, sizeof(small), "%H:%M", tick_time);
+                    case MINIVIEW_OPTION_CUSTOM_TZ: {
+                        int16_t off = settings_get()->tz_offset_minutes;
+                        time_t adjusted = time(NULL) + (time_t)(off * 60);
+                        struct tm *tz_tm = gmtime(&adjusted);
+                        prv_format_tz_time(small, sizeof(small), tz_tm);
+                        tiny[0] = '\0';
                         break;
+                    }
                     default:
                         tiny[0] = '\0';
                         small[0] = '\0';
@@ -117,6 +146,13 @@ void time_provider_tick(struct tm *tick_time) {
                     case BOTTOM_OPTION_DATE_DOW_DATE:
                         strftime(buf, sizeof(buf), "%a %d", tick_time);
                         break;
+                    case BOTTOM_OPTION_CUSTOM_TZ: {
+                        int16_t off = settings_get()->tz_offset_minutes;
+                        time_t adjusted = time(NULL) + (time_t)(off * 60);
+                        struct tm *tz_tm = gmtime(&adjusted);
+                        prv_format_tz_time(buf, sizeof(buf), tz_tm);
+                        break;
+                    }
                     default:
                         buf[0] = '\0';
                         break;

@@ -16,10 +16,12 @@
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
-      "chalk",
+      "aplite",
       "basalt",
+      "chalk",
       "diorite",
       "emery",
+      "flint",
       "gabbro"
     ],
     "watchapp": {
@@ -41,6 +43,7 @@
       "CFG_SECONDS_OPTION",
       "CFG_BOTTOM_LEFT_OPTION",
       "CFG_BOTTOM_RIGHT_OPTION",
+      "CFG_TZ_OFFSET",
       "WEATHER_TEMPERATURE",
       "WEATHER_CONDITION",
       "WEATHER_PRESSURE",
@@ -93,6 +96,12 @@
           "type": "bitmap",
           "name": "SHEET_GLYPHS_66",
           "file": "fonts/bitmaps/BebasNeue66.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_GLOBE",
+          "file": "icons/Globe.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",

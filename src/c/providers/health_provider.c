@@ -80,7 +80,7 @@ static void prv_health_handler(HealthEventType event, void *context) {
 #endif
 
 static void prv_update_graph(Layer *layer, uint8_t option) {
-  int8_t vals[HISTORY_24H_LEN];
+  int8_t vals[HISTORY_24H_LEN] = {0};
   uint8_t count = 0;
 #if defined(PBL_HEALTH)
   if (option == GRAPH_OPTION_HEART_RATE) {

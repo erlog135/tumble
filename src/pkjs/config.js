@@ -1,3 +1,50 @@
+var TZ_OPTIONS = [
+  { "label": "UTC-12 (BIT)",         "value": "-720" },
+  { "label": "UTC-11 (SST)",         "value": "-660" },
+  { "label": "UTC-10 (HST)",         "value": "-600" },
+  { "label": "UTC-9 (AKST)",         "value": "-540" },
+  { "label": "UTC-8 (PST)",          "value": "-480" },
+  { "label": "UTC-7 (MST/PDT)",      "value": "-420" },
+  { "label": "UTC-6 (CST/MDT)",      "value": "-360" },
+  { "label": "UTC-5 (EST/CDT)",      "value": "-300" },
+  { "label": "UTC-4 (AST/EDT)",      "value": "-240" },
+  { "label": "UTC-3 (BRT/ART)",      "value": "-180" },
+  { "label": "UTC-2 (GST)",          "value": "-120" },
+  { "label": "UTC-1 (CVT/AZOT)",     "value": "-60"  },
+  { "label": "UTC+0 (UTC/GMT/WET)",  "value": "0"    },
+  { "label": "UTC+1 (CET/WAT)",      "value": "60"   },
+  { "label": "UTC+2 (EET/CAT/IST)",  "value": "120"  },
+  { "label": "UTC+3 (MSK/EAT/AST)",  "value": "180"  },
+  { "label": "UTC+3:30 (IRST)",      "value": "210"  },
+  { "label": "UTC+4 (GST/GET)",      "value": "240"  },
+  { "label": "UTC+4:30 (AFT)",       "value": "270"  },
+  { "label": "UTC+5 (PKT/UZT)",      "value": "300"  },
+  { "label": "UTC+5:30 (IST/SLT)",   "value": "330"  },
+  { "label": "UTC+5:45 (NPT)",       "value": "345"  },
+  { "label": "UTC+6 (BST/BTT)",      "value": "360"  },
+  { "label": "UTC+6:30 (MMT/CCT)",   "value": "390"  },
+  { "label": "UTC+7 (ICT/WIB)",      "value": "420"  },
+  { "label": "UTC+8 (CST/SGT/AWST)", "value": "480"  },
+  { "label": "UTC+8:45 (ACWST)",     "value": "525"  },
+  { "label": "UTC+9 (JST/KST)",      "value": "540"  },
+  { "label": "UTC+9:30 (ACST)",      "value": "570"  },
+  { "label": "UTC+10 (AEST/ChST)",   "value": "600"  },
+  { "label": "UTC+10:30 (LHST)",     "value": "630"  },
+  { "label": "UTC+11 (SBT/AEDT)",    "value": "660"  },
+  { "label": "UTC+12 (NZST/FJST)",   "value": "720"  },
+  { "label": "UTC+12:45 (CHAST)",    "value": "765"  },
+  { "label": "UTC+13 (TOT/NZDT)",    "value": "780"  },
+  { "label": "UTC+14 (LINT)",        "value": "840"  }
+];
+
+var localTzOffsetStr = (function() {
+  var offset = String(-(new Date().getTimezoneOffset()));
+  for (var i = 0; i < TZ_OPTIONS.length; i++) {
+    if (TZ_OPTIONS[i].value === offset) { return offset; }
+  }
+  return "0";
+})();
+
 module.exports = [
   {
     "type": "heading",
@@ -74,16 +121,6 @@ module.exports = [
       },
       {
         "type": "select",
-        "messageKey": "CFG_WEATHER_OPTION",
-        "label": "Weather data provider",
-        "defaultValue": "0",
-        "options": [
-          { "label": "Apple WeatherKit",  "value": "0" },
-          { "label": "Open-Meteo", "value": "1" }
-        ]
-      },
-      {
-        "type": "select",
         "messageKey": "CFG_WEATHER_REFRESH_INTERVAL",
         "label": "Weather refresh interval",
         "defaultValue": "30",
@@ -122,6 +159,22 @@ module.exports = [
           { "label": "Battery (icon)",               "value": "12" },
           { "label": "Battery / Quiet Time / Phone status", "value": "13" }
         ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Time Zone"
+      },
+      {
+        "type": "select",
+        "messageKey": "CFG_TZ_OFFSET",
+        "label": "Custom Time Zone",
+        "defaultValue": localTzOffsetStr,
+        "options": TZ_OPTIONS
       }
     ]
   },
@@ -192,7 +245,8 @@ module.exports = [
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },
           { "label": "Temperature",               "value": "9" },
-          { "label": "Battery (icon)",            "value": "10" }
+          { "label": "Battery (icon)",            "value": "10" },
+          { "label": "Custom time zone",          "value": "11" }
         ]
       }
     ]
@@ -220,7 +274,8 @@ module.exports = [
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },
           { "label": "Temperature",               "value": "9" },
-          { "label": "Battery (icon)",            "value": "10" }
+          { "label": "Battery (icon)",            "value": "10" },
+          { "label": "Custom time zone",          "value": "11" }
         ]
       }
     ]

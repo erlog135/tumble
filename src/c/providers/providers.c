@@ -84,6 +84,7 @@ static ProviderId prv_get_bottom_provider(uint8_t option) {
         case BOTTOM_OPTION_TEMPERATURE:      return PROVIDER_WEATHER;
         case BOTTOM_OPTION_SUNRISE_SUNSET:   return PROVIDER_SUN;
         case BOTTOM_OPTION_BATTERY:          return PROVIDER_BATTERY;
+        case BOTTOM_OPTION_CUSTOM_TZ:        return PROVIDER_TIME;
         default:                             return PROVIDER_NONE;
     }
 }
