@@ -1,8 +1,14 @@
 #include "miniview.h"
 #include "../layout.h"
+#include "../providers/providers.h"
+#include <string.h>
 
 typedef struct {
   MiniviewConfig config;
+  GRect small_text_bounds;
+  GRect medium_text_bounds;
+  GFont small_font;
+  GFont medium_font;
   GBitmap *icon_bitmap;
   GBitmap *column_bitmaps[3];
   char small_text[12];
@@ -74,6 +80,23 @@ static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint cen
   graphics_draw_bitmap_in_rect(ctx, bitmap, rect);
 }
 
+/** Count UTF-8 code points (e.g. U+00B0 degree is one character, not two bytes). */
+static size_t prv_utf8_char_count(const char *s) {
+  size_t n = 0;
+  for (; *s; s++) {
+    if ((*s & 0xC0) != 0x80) n++;
+  }
+  return n;
+}
+
+/** Medium line uses small font when text is longer than 3 characters (fits miniview). */
+static GFont prv_font_for_medium_line(const MiniviewData *data, const char *text) {
+  if (prv_utf8_char_count(text) > 3) {
+    return data->small_font;
+  }
+  return data->medium_font;
+}
+
 static void miniview_update_proc(Layer *layer, GContext *ctx) {
   MiniviewData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
@@ -89,11 +112,12 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:
       graphics_context_set_text_color(ctx, GColorBlack);
-      graphics_draw_text(ctx, data->small_text, data->config.small_font,
-        data->config.small_text_bounds,
+      graphics_draw_text(ctx, data->small_text, data->small_font,
+        data->small_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-      graphics_draw_text(ctx, data->medium_text, data->config.medium_font,
-        data->config.medium_text_bounds,
+      graphics_draw_text(ctx, data->medium_text,
+        prv_font_for_medium_line(data, data->medium_text),
+        data->medium_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
       break;
 
@@ -106,8 +130,9 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
       }
       graphics_context_set_text_color(ctx, GColorBlack);
-      graphics_draw_text(ctx, data->medium_text, data->config.medium_font,
-        data->config.medium_text_bounds,
+      graphics_draw_text(ctx, data->medium_text,
+        prv_font_for_medium_line(data, data->medium_text),
+        data->medium_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
       break;
     }
@@ -177,10 +202,16 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   }
 }
 
-Layer *miniview_create(GRect bounds, MiniviewConfig config) {
+Layer *miniview_create(MiniviewConfig config) {
+  Layout *layout = providers_get_layout();
+  GRect bounds = layout->miniview_bounds;
   Layer *layer = layer_create_with_data(bounds, sizeof(MiniviewData));
   MiniviewData *data = layer_get_data(layer);
   data->config = config;
+  data->small_text_bounds = layout->miniview_small_text_bounds;
+  data->medium_text_bounds = layout->miniview_medium_text_bounds;
+  data->small_font = providers_get_font_small();
+  data->medium_font = providers_get_font_medium();
 
   bool needs_single_icon = config.mode == MINIVIEW_MODE_ICON_TEXT
                         || config.mode == MINIVIEW_MODE_ICON_CENTER

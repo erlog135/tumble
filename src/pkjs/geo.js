@@ -2,8 +2,8 @@
  * Fetches the device's current position once and passes it to callback.
  *
  * Callback signature: function(err, pos)
- *   pos: { lat, lon, altitude }  — altitude rounded to the nearest integer metre,
- *         or 0 when the platform does not provide it.
+ *   pos: { lat, lon, altitude }  — GPS altitude (metres, rounded), or 0 if unavailable.
+ *         Display altitude for weather uses Open-Meteo API elevation, not this field.
  */
 function getPosition(callback) {
   navigator.geolocation.getCurrentPosition(

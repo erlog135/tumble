@@ -19,27 +19,20 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
 
     Layout *layout = providers_get_layout();
     GFont font_small = providers_get_font_small();
-    GFont font_medium = providers_get_font_medium();
     Layer *window_layer = providers_get_window_layer();
 
     Layer *layer = NULL;
 
     switch (slot) {
         case COMPLICATION_MINIVIEW: {
-            MiniviewConfig cfg = {
-                .small_text_bounds = layout->miniview_small_text_bounds,
-                .medium_text_bounds = layout->miniview_medium_text_bounds,
-                .small_font = font_small,
-                .medium_font = font_medium,
-            };
+            MiniviewConfig cfg = { 0 };
             if (option == MINIVIEW_OPTION_CUSTOM_TZ) {
                 cfg.mode = MINIVIEW_MODE_ICON_TEXT;
                 cfg.icon_resource_id = RESOURCE_ID_ICON_GLOBE;
-                cfg.medium_font = font_small;
             } else {
                 cfg.mode = MINIVIEW_MODE_TEXT_STACK;
             }
-            layer = miniview_create(layout->miniview_bounds, cfg);
+            layer = miniview_create(cfg);
             break;
         }
         case COMPLICATION_BOTTOM_LEFT:

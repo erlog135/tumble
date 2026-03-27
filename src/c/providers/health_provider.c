@@ -126,7 +126,6 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
 
   Layout *layout = providers_get_layout();
   GFont font_small = providers_get_font_small();
-  GFont font_medium = providers_get_font_medium();
   Layer *window_layer = providers_get_window_layer();
   Layer *layer = NULL;
 
@@ -147,12 +146,8 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
       break;
     }
     case COMPLICATION_MINIVIEW: {
-      layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+      layer = miniview_create((MiniviewConfig) {
         .mode = MINIVIEW_MODE_ICON_TEXT,
-        .small_text_bounds = layout->miniview_small_text_bounds,
-        .medium_text_bounds = layout->miniview_medium_text_bounds,
-        .small_font = font_small,
-        .medium_font = font_medium,
         .icon_resource_id = prv_icon_for_miniview_option(option),
       });
       const char *miniview_init = (option == MINIVIEW_OPTION_CALORIES) ? "----"
@@ -219,11 +214,12 @@ static void prv_update_miniview(Layer *layer, uint8_t option) {
     }
     case MINIVIEW_OPTION_STEPS: {
       HealthValue steps = health_service_sum_today(HealthMetricStepCount);
-      if (steps >= 10000)
+      if (steps >= 100000) {
         snprintf(buf, sizeof(buf), "%d.%dk", (int)(steps / 1000),
                  (int)((steps % 1000) / 100));
-      else if (steps > 0)
+      } else if (steps > 0) {
         snprintf(buf, sizeof(buf), "%d", (int)steps);
+      }
       break;
     }
     case MINIVIEW_OPTION_CALORIES: {

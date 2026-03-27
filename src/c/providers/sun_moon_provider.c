@@ -56,24 +56,22 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
                     struct tm *now_tm = localtime(&now);
                     uint32_t init_icon = (now_tm->tm_hour >= 12)
                         ? RESOURCE_ID_ICON_SUNSET : RESOURCE_ID_ICON_SUNRISE;
-                    layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+                    layer = miniview_create((MiniviewConfig) {
                         .mode = MINIVIEW_MODE_ICON_TEXT,
                         .icon_resource_id = init_icon,
-                        .medium_text_bounds = layout->miniview_medium_text_bounds,
-                        .medium_font = font_small,
                     });
                     miniview_set_medium_text(layer, "--:--");
                     break;
                 }
                 case MINIVIEW_OPTION_SUN_POSITION:
-                    layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+                    layer = miniview_create((MiniviewConfig) {
                         .mode = MINIVIEW_MODE_CLOCK_DOTS,
                         .icon_resource_id = RESOURCE_ID_ICON_SUN,
                         .icon_offset = GPoint(0, -15),
                     });
                     break;
                 case MINIVIEW_OPTION_MOON_PHASE:
-                    layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+                    layer = miniview_create((MiniviewConfig) {
                         .mode = MINIVIEW_MODE_ICON_CENTER,
                         .icon_resource_id = 0,
                     });

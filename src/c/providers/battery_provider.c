@@ -91,14 +91,14 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_MINIVIEW: {
       BatteryChargeState state = battery_state_service_peek();
       if (option == MINIVIEW_OPTION_BATTERY) {
-        layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+        layer = miniview_create((MiniviewConfig) {
           .mode = MINIVIEW_MODE_ICON_CENTER,
           .icon_resource_id = prv_battery_icon(state.charge_percent),
         });
       } else {
         bool qt = quiet_time_is_active();
         bool bt = connection_service_peek_pebble_app_connection();
-        layer = miniview_create(layout->miniview_bounds, (MiniviewConfig) {
+        layer = miniview_create((MiniviewConfig) {
           .mode = MINIVIEW_MODE_ICON_COLUMN,
           .column_icon_resource_ids = {
             qt ? RESOURCE_ID_ICON_QUIET_TIME_ENABLED : RESOURCE_ID_ICON_QUIET_TIME_DISABLED,

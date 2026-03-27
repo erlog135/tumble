@@ -50,16 +50,25 @@ function wmoToCondition(code, isDay) {
   return WEATHER_COND_UNKNOWN;
 }
 
-function sendWeather(tempF, pressure, condition) {
+/** Open-Meteo elevation (m); rounded integer for the watch. */
+function elevationToMeters(e) {
+  if (e === null || e === undefined) return 0;
+  var n = Math.round(Number(e));
+  return isNaN(n) ? 0 : n;
+}
+
+function sendWeather(tempF, pressure, condition, altitudeM) {
   Pebble.sendAppMessage(
     {
       'WEATHER_TEMPERATURE': tempF,
       'WEATHER_PRESSURE':    pressure,
-      'WEATHER_CONDITION':   condition
+      'WEATHER_CONDITION':   condition,
+      'WEATHER_ALTITUDE':    altitudeM
     },
     function() {
       console.log('Weather sent: temp=' + tempF + '°F' +
         ' pressure=' + pressure + 'hPa' +
+        ' altitude=' + altitudeM + 'm' +
         ' condition=' + condition);
     },
     function(e) {
@@ -76,7 +85,10 @@ function fetch(lat, lon) {
   if (cached && (Date.now() - cached.timestamp) < intervalMs) {
     console.log('Weather: sending cached data (age=' +
       Math.round((Date.now() - cached.timestamp) / 1000) + 's)');
-    sendWeather(cached.tempF, cached.pressure, cached.condition);
+    var altCached = (cached.altitudeM !== undefined && cached.altitudeM !== null)
+      ? cached.altitudeM
+      : 0;
+    sendWeather(cached.tempF, cached.pressure, cached.condition, altCached);
     return;
   }
 
@@ -104,15 +116,17 @@ function fetch(lat, lon) {
     var tempF     = celsiusToFahrenheit(current.temperature_2m);
     var pressure  = Math.round(current.surface_pressure);
     var condition = wmoToCondition(current.weather_code, solar.isDaytime(lat, lon));
+    var altitudeM = elevationToMeters(data.elevation);
 
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       tempF:     tempF,
       pressure:  pressure,
       condition: condition,
+      altitudeM: altitudeM,
       timestamp: Date.now()
     }));
 
-    sendWeather(tempF, pressure, condition);
+    sendWeather(tempF, pressure, condition, altitudeM);
   };
   xhr.onerror = function() {
     console.log('Weather: network error fetching ' + url);
