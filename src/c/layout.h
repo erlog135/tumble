@@ -33,6 +33,10 @@
 
 #define SMALL_FONT_BOTTOM_MARGIN 4
 
+// Bebas Neue's built-in gap from the top of the cell to the cap height.
+// Used to vertically center the miniview text stack within the inner circle.
+#define MINIVIEW_FONT_CAP_TOP_MARGIN 11
+
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
   #define TIME_GLYPH_SHEET_RESOURCE_ID RESOURCE_ID_SHEET_GLYPHS_66
   #define TIME_BITMAP_SIZE GSize(440, 66)

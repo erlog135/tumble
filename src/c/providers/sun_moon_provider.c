@@ -86,7 +86,7 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
             GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
                 ? layout->bottom_left_bounds : layout->bottom_right_bounds;
             BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
-                ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+                ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
             time_t now = time(NULL);
             struct tm *now_tm = localtime(&now);
             uint32_t init_icon = (now_tm->tm_hour >= 12)

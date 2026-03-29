@@ -76,7 +76,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
         .style = GRAPH_STYLE_FILLED,
-        .h_markers = 3,
+        .h_markers = 2,
         .v_markers = 1,
         .top_lip = true,
         .fixed_range = true,
@@ -120,7 +120,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
         ? layout->bottom_left_bounds : layout->bottom_right_bounds;
       BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
-        ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+        ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
       BatteryChargeState bstate = battery_state_service_peek();
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = BOTTOM_MODE_ICON_ONLY,
@@ -151,13 +151,19 @@ void battery_provider_deactivate(ComplicationSlot slot) {
 }
 
 void battery_provider_record_history(struct tm *tick_time) {
-  uint8_t cur_hour = (uint8_t)tick_time->tm_hour;
-  if (cur_hour == s_history.last_hour) return;
+  uint8_t cur_hour  = (uint8_t)tick_time->tm_hour;
+  uint8_t cur_block  = cur_hour / 3;
+  uint8_t last_block = (s_history.last_hour == 0xFF) ? 0xFF : s_history.last_hour / 3;
 
   BatteryChargeState state = battery_state_service_peek();
   int8_t scaled = prv_battery_value(state.charge_percent);
-  history_push(s_history.points, &s_history.count, HISTORY_24H_LEN, scaled);
-  s_history.last_hour = cur_hour;
+
+  if (cur_block == last_block && s_history.count > 0) {
+    s_history.points[0] = scaled;
+  } else {
+    history_push(s_history.points, &s_history.count, HISTORY_24H_LEN, scaled);
+    s_history.last_hour = cur_hour;
+  }
   persist_write_data(PERSIST_KEY_BATTERY_HISTORY, &s_history, sizeof(s_history));
 }
 

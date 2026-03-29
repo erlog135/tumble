@@ -37,14 +37,6 @@ var TZ_OPTIONS = [
   { "label": "UTC+14 (LINT)",        "value": "840"  }
 ];
 
-var localTzOffsetStr = (function() {
-  var offset = String(-(new Date().getTimezoneOffset()));
-  for (var i = 0; i < TZ_OPTIONS.length; i++) {
-    if (TZ_OPTIONS[i].value === offset) { return offset; }
-  }
-  return "0";
-})();
-
 module.exports = [
   {
     "type": "heading",
@@ -144,8 +136,8 @@ module.exports = [
         "label": "Display",
         "defaultValue": "1",
         "options": [
-          { "label": "Date (Month & Date)",          "value": "0"  },
-          { "label": "Date (Day of Week & Date)",    "value": "1"  },
+          { "label": "Month & date",                 "value": "0"  },
+          { "label": "Day of week & date",           "value": "1"  },
           { "label": "Heart rate",                   "value": "2"  },
           { "label": "Steps",                        "value": "3"  },
           { "label": "Calories",                     "value": "4"  },
@@ -156,8 +148,8 @@ module.exports = [
           { "label": "Custom time zone",             "value": "9"  },
           { "label": "Current sun position",         "value": "10" },
           { "label": "Current moon phase",           "value": "11" },
-          { "label": "Battery (icon)",               "value": "12" },
-          { "label": "Battery / Quiet Time / Phone status", "value": "13" }
+          { "label": "Battery",                      "value": "12" },
+          { "label": "Battery / Quiet Time / BT status", "value": "13" }
         ]
       }
     ]
@@ -173,7 +165,7 @@ module.exports = [
         "type": "select",
         "messageKey": "CFG_TZ_OFFSET",
         "label": "Custom Time Zone",
-        "defaultValue": localTzOffsetStr,
+        "defaultValue": "0",
         "options": TZ_OPTIONS
       }
     ]
@@ -210,7 +202,7 @@ module.exports = [
         "type": "select",
         "messageKey": "CFG_GRAPH_OPTION",
         "label": "Display",
-        "defaultValue": "0",
+        "defaultValue": "5",
         "options": [
           { "label": "Steps",        "value": "0" },
           { "label": "Heart rate",   "value": "1" },
@@ -235,8 +227,8 @@ module.exports = [
         "label": "Display",
         "defaultValue": "8",
         "options": [
-          { "label": "Date (month & date)",       "value": "0" },
-          { "label": "Date (day of week & date)", "value": "1" },
+          { "label": "Month & date",              "value": "0" },
+          { "label": "Day of week & date",        "value": "1" },
           { "label": "Steps",                     "value": "2" },
           { "label": "Heart rate",                "value": "3" },
           { "label": "Calories",                  "value": "4" },
@@ -245,7 +237,7 @@ module.exports = [
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },
           { "label": "Temperature",               "value": "9" },
-          { "label": "Battery (icon)",            "value": "10" },
+          { "label": "Battery",                  "value": "10" },
           { "label": "Custom time zone",          "value": "11" }
         ]
       }
@@ -262,10 +254,10 @@ module.exports = [
         "type": "select",
         "messageKey": "CFG_BOTTOM_RIGHT_OPTION",
         "label": "Display",
-        "defaultValue": "0",
+        "defaultValue": "10",
         "options": [
-          { "label": "Date (month & date)",       "value": "0" },
-          { "label": "Date (day of week & date)", "value": "1" },
+          { "label": "Month & date",              "value": "0" },
+          { "label": "Day of week & date",        "value": "1" },
           { "label": "Steps",                     "value": "2" },
           { "label": "Heart rate",                "value": "3" },
           { "label": "Calories",                  "value": "4" },
@@ -274,7 +266,7 @@ module.exports = [
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },
           { "label": "Temperature",               "value": "9" },
-          { "label": "Battery (icon)",            "value": "10" },
+          { "label": "Battery",                   "value": "10" },
           { "label": "Custom time zone",          "value": "11" }
         ]
       }

@@ -266,11 +266,13 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_GRAPH: {
       GraphStyle style = (option == GRAPH_OPTION_ALTITUDE)
         ? GRAPH_STYLE_FILLED : GRAPH_STYLE_LINE;
+      uint8_t h_markers = (option == GRAPH_OPTION_TEMPERATURE) ? 3 : 0;
+      uint8_t v_markers = (option == GRAPH_OPTION_TEMPERATURE) ? 0 : 3;
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
         .style = style,
-        .h_markers = 3,
-        .v_markers = 3,
+        .h_markers = h_markers,
+        .v_markers = v_markers,
         .top_lip = true,
         .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
@@ -294,7 +296,7 @@ void weather_provider_activate(ComplicationSlot slot, uint8_t option) {
       GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
         ? layout->bottom_left_bounds : layout->bottom_right_bounds;
       BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
-        ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+        ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
       bool is_trend = (option == BOTTOM_OPTION_PRESSURE_TREND);
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = is_trend ? BOTTOM_MODE_ICON_ONLY : BOTTOM_MODE_ICON_TEXT,
@@ -326,14 +328,19 @@ void weather_provider_deactivate(ComplicationSlot slot) {
 
 void weather_provider_record_history(struct tm *tick_time) {
   uint8_t cur_hour = (uint8_t)tick_time->tm_hour;
-  if (cur_hour == s_history.last_hour) return;
 
   int8_t pres = s_has_data ? prv_scale_pressure(s_pressure)       : HISTORY_INVALID;
   int8_t alt  = s_has_data ? prv_scale_altitude(s_altitude)       : HISTORY_INVALID;
   int8_t temp = s_has_data ? prv_scale_temperature(s_temperature) : HISTORY_INVALID;
 
-  prv_history_push_all(pres, alt, temp);
-  s_history.last_hour = cur_hour;
+  if (cur_hour == s_history.last_hour && s_history.count > 0) {
+    s_history.pressure[0]    = pres;
+    s_history.altitude[0]    = alt;
+    s_history.temperature[0] = temp;
+  } else {
+    prv_history_push_all(pres, alt, temp);
+    s_history.last_hour = cur_hour;
+  }
   persist_write_data(PERSIST_KEY_WEATHER_HISTORY, &s_history, sizeof(s_history));
 }
 

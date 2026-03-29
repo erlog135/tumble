@@ -40,7 +40,7 @@ void time_provider_activate(ComplicationSlot slot, uint8_t option) {
             GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
                 ? layout->bottom_left_bounds : layout->bottom_right_bounds;
             BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
-                ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+                ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
             BottomConfig cfg = {
                 .align = align,
                 .font = font_small,

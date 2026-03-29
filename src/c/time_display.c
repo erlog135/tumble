@@ -25,6 +25,20 @@ static int16_t prv_glyph_display_width(int8_t glyph_idx) {
   return 0;
 }
 
+/* Returns the x offset for the time glyphs given the layer width.
+   When seconds are present, prefers centering the time alone if the seconds
+   column still fits to the right; otherwise centres the combined block. */
+static int16_t prv_compute_time_x(int16_t layer_w, int16_t glyph_w, bool has_seconds) {
+  if (has_seconds) {
+    int16_t centered_x = (layer_w - glyph_w) / 2;
+    if (centered_x + glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH <= layer_w) {
+      return centered_x;
+    }
+    return (layer_w - (glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH)) / 2;
+  }
+  return (layer_w - glyph_w) / 2;
+}
+
 static int16_t prv_glyph_total_width(const char *time_str) {
   int16_t total = 0;
   for (const char *p = time_str; *p; p++) {
@@ -42,10 +56,8 @@ static void glyph_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
   int16_t glyph_w = prv_glyph_total_width(data->time_str);
-  int16_t total_w = (data->seconds_visible || data->seconds_reserved)
-    ? glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH
-    : glyph_w;
-  int16_t x = (bounds.size.w - total_w) / 2;
+  int16_t x = prv_compute_time_x(bounds.size.w, glyph_w,
+    data->seconds_visible || data->seconds_reserved);
   int16_t y = (bounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
 
   graphics_context_set_compositing_mode(ctx, GCompOpSet);
@@ -159,10 +171,9 @@ void time_display_set_time(Layer *layer, struct tm *tick_time) {
   }
 
   if (data->seconds_visible || data->seconds_reserved) {
-    int16_t glyph_w = prv_glyph_total_width(data->time_str);
-    int16_t total_w = glyph_w + GLYPH_SPACING_X + SECONDS_LAYER_WIDTH;
-    int16_t start_x = (layer_get_bounds(layer).size.w - total_w) / 2;
     GRect lbounds = layer_get_bounds(layer);
+    int16_t glyph_w = prv_glyph_total_width(data->time_str);
+    int16_t start_x = prv_compute_time_x(lbounds.size.w, glyph_w, true);
     int16_t glyph_top = (lbounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
     layer_set_frame(text_layer_get_layer(data->seconds_layer),
       GRect(start_x + glyph_w + GLYPH_SPACING_X, glyph_top, SECONDS_LAYER_WIDTH, SMALL_FONT_HEIGHT));

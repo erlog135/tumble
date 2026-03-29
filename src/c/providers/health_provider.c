@@ -133,11 +133,12 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_GRAPH: {
       GraphStyle style = (option == GRAPH_OPTION_HEART_RATE)
         ? GRAPH_STYLE_LINE : GRAPH_STYLE_BARS;
+      uint8_t h_markers = (option == GRAPH_OPTION_HEART_RATE) ? 4 : 0;
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
         .style = style,
-        .h_markers = 3,
-        .v_markers = 3,
+        .h_markers = h_markers,
+        .v_markers = 0,
         .top_lip = true,
         .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
@@ -161,7 +162,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
       GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
         ? layout->bottom_left_bounds : layout->bottom_right_bounds;
       BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
-        ? BOTTOM_ALIGN_RIGHT : BOTTOM_ALIGN_LEFT;
+        ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
       layer = bottom_complication_create(bounds, (BottomConfig) {
         .mode = BOTTOM_MODE_ICON_TEXT,
         .align = align,

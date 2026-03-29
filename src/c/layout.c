@@ -29,11 +29,26 @@ void layout_init(Layout *layout, GRect bounds) {
     );
 
     layout->miniview_bounds = grect_inset(miniview_rect, GEdgeInsets(SECTION_MARGIN));
-    // text bounds are in miniview layer-local coordinates (origin 0,0)
-    layout->miniview_small_text_bounds  = GRect(0, MINIVIEW_BORDER_SIZE,
-        layout->miniview_bounds.size.w, SMALL_FONT_HEIGHT);
-    layout->miniview_medium_text_bounds = GRect(0, SMALL_FONT_HEIGHT,
-        layout->miniview_bounds.size.w, MEDIUM_FONT_HEIGHT);
+    // text bounds are in miniview layer-local coordinates (origin 0,0).
+    // The medium box starts MINIVIEW_BORDER_SIZE px before the small box ends (an
+    // intentional overlap that accounts for the font's built-in cap-top gap).
+    // That makes the visible span = SMALL + MEDIUM - BORDER.  Subtract half the
+    // font's cap-top margin so that on small screens the formula yields the
+    // original text_top = MINIVIEW_BORDER_SIZE exactly, while larger circles
+    // (emery/gabbro) get the extra downward shift needed to visually centre the pair.
+    {
+        int16_t mv_w  = layout->miniview_bounds.size.w;
+        int16_t inner_h = layout->miniview_bounds.size.h - 2 * MINIVIEW_BORDER_SIZE;
+        int16_t span  = SMALL_FONT_HEIGHT + MEDIUM_FONT_HEIGHT - MINIVIEW_BORDER_SIZE;
+        int16_t text_top = MINIVIEW_BORDER_SIZE
+            + (inner_h - span) / 2
+            - MINIVIEW_FONT_CAP_TOP_MARGIN / 2;
+        if (text_top < MINIVIEW_BORDER_SIZE) text_top = MINIVIEW_BORDER_SIZE;
+        layout->miniview_small_text_bounds  = GRect(0, text_top,
+            mv_w, SMALL_FONT_HEIGHT);
+        layout->miniview_medium_text_bounds = GRect(0, text_top + SMALL_FONT_HEIGHT - MINIVIEW_BORDER_SIZE,
+            mv_w, MEDIUM_FONT_HEIGHT);
+    }
 
     layout->time_layer_bounds = grect_inset(layout->mid_section_bounds, GEdgeInsets(SECTION_MARGIN, 0));
     layout->time_display_bounds = GRect(
