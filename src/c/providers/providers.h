@@ -16,6 +16,7 @@ typedef enum {
 
 void providers_init(Layer *window_layer, Layout *layout, GFont font_small, GFont font_medium);
 void providers_apply_settings(void);
+void providers_mark_layers_dirty(void);
 void providers_on_minute_tick(struct tm *tick_time);
 void providers_on_weather_data(DictionaryIterator *iter);
 void providers_on_solar_data(DictionaryIterator *iter);

@@ -1,6 +1,7 @@
 #include "miniview.h"
 #include "../layout.h"
 #include "../providers/providers.h"
+#include "../settings.h"
 #include <string.h>
 
 typedef struct {
@@ -27,10 +28,16 @@ typedef struct {
 
 #define ICON_COLUMN_SPACING 15  // pixels between the middle icon and each outer icon
 
-static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius) {
-  graphics_context_set_fill_color(ctx, GColorWhite);
+/** @param white_face true: white fill and black ring (default miniview); false: black fill and white ring. */
+static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius, bool white_face) {
+  if (white_face) {
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_context_set_stroke_color(ctx, GColorBlack);
+  } else {
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    graphics_context_set_stroke_color(ctx, GColorWhite);
+  }
   graphics_fill_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE);
-  graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_context_set_stroke_width(ctx, MINIVIEW_BORDER_SIZE);
   graphics_draw_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE / 2);
 }
@@ -97,6 +104,14 @@ static GFont prv_font_for_medium_line(const MiniviewData *data, const char *text
   return data->medium_font;
 }
 
+static GColor prv_miniview_text_color(void) {
+  return settings_get()->invert_miniview ? GColorBlack : GColorWhite;
+}
+
+static GCompOp prv_miniview_icon_op(void) {
+  return settings_get()->invert_miniview ? GCompOpAssignInverted : GCompOpAssign;
+}
+
 static void miniview_update_proc(Layer *layer, GContext *ctx) {
   MiniviewData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
@@ -105,12 +120,14 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   uint16_t inner_radius = radius - MINIVIEW_BORDER_SIZE;
 
   graphics_context_set_antialiased(ctx, false);
-  prv_draw_background(ctx, center, radius);
+  bool sun_clock = (data->config.mode == MINIVIEW_MODE_CLOCK_DOTS);
+  bool white_face = sun_clock || settings_get()->invert_miniview;
+  prv_draw_background(ctx, center, radius, white_face);
   prv_draw_border_decoration(ctx, center, radius, inner_radius);
 
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:
-      graphics_context_set_text_color(ctx, GColorBlack);
+      graphics_context_set_text_color(ctx, prv_miniview_text_color());
       graphics_draw_text(ctx, data->small_text, data->small_font,
         data->small_text_bounds,
         GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
@@ -126,9 +143,9 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         // Place icon in upper half, vertically centered between border and midpoint
         int16_t icon_y = MINIVIEW_BORDER_SIZE + (center.y - MINIVIEW_BORDER_SIZE - sz.h) / 2;
         GPoint icon_center = GPoint(center.x, icon_y + sz.h / 2);
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, GCompOpAssignInverted);
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, prv_miniview_icon_op());
       }
-      graphics_context_set_text_color(ctx, GColorBlack);
+      graphics_context_set_text_color(ctx, prv_miniview_text_color());
       graphics_draw_text(ctx, data->medium_text,
         prv_font_for_medium_line(data, data->medium_text),
         data->medium_text_bounds,
@@ -138,7 +155,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
 
     case MINIVIEW_MODE_ICON_CENTER:
       if (data->icon_bitmap) {
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center, GCompOpAssignInverted);
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center, prv_miniview_icon_op());
       }
       break;
 
@@ -193,7 +210,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
       for (int i = 0; i < 3; i++) {
         if (data->column_bitmaps[i]) {
           GPoint icon_center = GPoint(center.x, center.y + offsets_y[i]);
-          prv_draw_icon_centered_at(ctx, data->column_bitmaps[i], icon_center, GCompOpAssignInverted);
+          prv_draw_icon_centered_at(ctx, data->column_bitmaps[i], icon_center, prv_miniview_icon_op());
         }
       }
       break;

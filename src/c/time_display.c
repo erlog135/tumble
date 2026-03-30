@@ -1,5 +1,6 @@
 #include "time_display.h"
 #include "layout.h"
+#include "settings.h"
 
 #define NUM_GLYPHS 11  /* 0-9 + colon */
 
@@ -62,7 +63,8 @@ static void glyph_layer_update_proc(Layer *layer, GContext *ctx) {
     data->seconds_visible || data->seconds_reserved);
   int16_t y = (bounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
 
-  graphics_context_set_compositing_mode(ctx, GCompOpSet);
+  graphics_context_set_compositing_mode(ctx,
+      settings_get()->black_bg ? GCompOpSet : GCompOpAssignInverted);
 
   for (const char *p = data->time_str; *p; p++) {
     int8_t idx = prv_char_to_glyph_index(*p);
@@ -124,7 +126,8 @@ Layer *time_display_create(GRect bounds, GFont seconds_font) {
   );
   data->seconds_layer = text_layer_create(seconds_bounds);
   text_layer_set_background_color(data->seconds_layer, GColorClear);
-  text_layer_set_text_color(data->seconds_layer, GColorWhite);
+  text_layer_set_text_color(data->seconds_layer,
+      settings_get()->black_bg ? GColorWhite : GColorBlack);
   text_layer_set_font(data->seconds_layer, seconds_font);
   text_layer_set_text_alignment(data->seconds_layer, GTextAlignmentCenter);
   text_layer_set_text(data->seconds_layer, "00");
@@ -200,5 +203,12 @@ void time_display_set_seconds_visible(Layer *layer, bool visible) {
 void time_display_set_seconds_reserved(Layer *layer, bool reserved) {
   TimeDisplayData *data = layer_get_data(layer);
   data->seconds_reserved = reserved;
+  layer_mark_dirty(data->glyph_layer);
+}
+
+void time_display_apply_settings(Layer *layer) {
+  TimeDisplayData *data = layer_get_data(layer);
+  text_layer_set_text_color(data->seconds_layer,
+      settings_get()->black_bg ? GColorWhite : GColorBlack);
   layer_mark_dirty(data->glyph_layer);
 }

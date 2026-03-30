@@ -151,6 +151,14 @@ void providers_init(Layer *window_layer, Layout *layout,
     sun_moon_provider_init();
 }
 
+void providers_mark_layers_dirty(void) {
+    for (int i = 0; i < COMPLICATION_COUNT; i++) {
+        if (s_layers[i]) {
+            layer_mark_dirty(s_layers[i]);
+        }
+    }
+}
+
 void providers_apply_settings(void) {
     ClaySettings *cfg = settings_get();
 

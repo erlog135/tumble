@@ -90,12 +90,14 @@
         {
           "type": "bitmap",
           "name": "SHEET_GLYPHS_52",
-          "file": "fonts/bitmaps/BebasNeue52.png"
+          "file": "fonts/bitmaps/BebasNeue52.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "SHEET_GLYPHS_66",
-          "file": "fonts/bitmaps/BebasNeue66.png"
+          "file": "fonts/bitmaps/BebasNeue66.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",

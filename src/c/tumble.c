@@ -155,6 +155,10 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
             s->black_bg ? GColorBlack : GColorWhite);
 
         providers_apply_settings();
+        providers_mark_layers_dirty();
+        if (s_time_display_layer) {
+            time_display_apply_settings(s_time_display_layer);
+        }
         update_tick_subscription();
         return;
     }

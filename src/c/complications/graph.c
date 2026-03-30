@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "../layout.h"
+#include "../settings.h"
 #include <string.h>
 
 typedef struct {
@@ -28,7 +29,8 @@ static int16_t prv_value_to_y(int8_t value, int16_t mn, int16_t mx, GRect plot) 
     - (int16_t)((int32_t)(value - mn) * (plot.size.h - 1) / (mx - mn));
 }
 
-static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
+static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds,
+    GColor fg, GCompOp icon_op) {
   GSize icon_sz = GSizeZero;
   if (data->icon_bitmap) {
     icon_sz = gbitmap_get_bounds(data->icon_bitmap).size;
@@ -53,26 +55,26 @@ static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds) {
 
   if (data->icon_bitmap) {
     GRect icon_rect = GRect(cur_x, center_y - icon_sz.h / 2, icon_sz.w, icon_sz.h);
-    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+    graphics_context_set_compositing_mode(ctx, icon_op);
     graphics_draw_bitmap_in_rect(ctx, data->icon_bitmap, icon_rect);
     cur_x += icon_sz.w + gap;
   }
 
-  graphics_context_set_text_color(ctx, GColorWhite);
+  graphics_context_set_text_color(ctx, fg);
   graphics_draw_text(ctx, label, data->config.label_font,
     GRect(cur_x, center_y - text_sz.h / 2 - SMALL_FONT_BOTTOM_MARGIN,
       text_sz.w + 2, text_sz.h),
     GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
 }
 
-static void prv_draw_axes(GContext *ctx, GraphData *data) {
+static void prv_draw_axes(GContext *ctx, GraphData *data, GColor fg) {
   GRect plot = data->plot_bounds;
   int16_t x1 = plot.origin.x;
   int16_t x2 = plot.origin.x + plot.size.w - 1;
   int16_t y_top = plot.origin.y;
   int16_t y_bot = plot.origin.y + plot.size.h - 1;
 
-  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_stroke_color(ctx, fg);
   graphics_context_set_stroke_width(ctx, 1);
 
   graphics_draw_line(ctx, GPoint(x1, y_top), GPoint(x1, y_bot));
@@ -98,7 +100,7 @@ static void prv_draw_axes(GContext *ctx, GraphData *data) {
   }
 }
 
-static void prv_draw_data(GContext *ctx, GraphData *data) {
+static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
   uint8_t count = data->value_count;
   if (count == 0) return;
 
@@ -121,7 +123,7 @@ static void prv_draw_data(GContext *ctx, GraphData *data) {
     if (mn > mx) { mn = 0; mx = 127; } // all invalid — nothing meaningful to draw
   }
 
-  graphics_context_set_stroke_color(ctx, GColorWhite);
+  graphics_context_set_stroke_color(ctx, fg);
   graphics_context_set_stroke_width(ctx, 1);
 
   switch (data->config.style) {
@@ -195,9 +197,12 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
 
   graphics_context_set_antialiased(ctx, false);
-  prv_draw_header(ctx, data, bounds);
-  prv_draw_axes(ctx, data);
-  prv_draw_data(ctx, data);
+  bool dark = settings_get()->black_bg;
+  GColor fg = dark ? GColorWhite : GColorBlack;
+  GCompOp icon_op = dark ? GCompOpAssign : GCompOpAssignInverted;
+  prv_draw_header(ctx, data, bounds, fg, icon_op);
+  prv_draw_axes(ctx, data, fg);
+  prv_draw_data(ctx, data, fg);
 }
 
 Layer *graph_create(GRect bounds, GRect plot_bounds, GraphConfig config) {

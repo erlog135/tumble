@@ -1,5 +1,6 @@
 #include "bottom.h"
 #include "../layout.h"
+#include "../settings.h"
 
 #define BOTTOM_TEXT_MAX_LEN 32
 #define BOTTOM_ICON_TEXT_GAP 4
@@ -83,9 +84,13 @@ static void bottom_update_proc(Layer *layer, GContext *ctx) {
 
   int16_t cur_x = start_x;
 
+  bool dark_bg = settings_get()->black_bg;
+  GCompOp icon_op = dark_bg ? GCompOpAssign : GCompOpAssignInverted;
+  GColor fg = dark_bg ? GColorWhite : GColorBlack;
+
   if (data->icon_bitmap && data->config.mode != BOTTOM_MODE_TEXT_ONLY) {
     GRect icon_rect = GRect(cur_x, center_y - icon_size.h / 2, icon_size.w, icon_size.h);
-    graphics_context_set_compositing_mode(ctx, GCompOpAssign);
+    graphics_context_set_compositing_mode(ctx, icon_op);
     graphics_draw_bitmap_in_rect(ctx, data->icon_bitmap, icon_rect);
     cur_x += icon_and_gap;
   }
@@ -94,7 +99,7 @@ static void bottom_update_proc(Layer *layer, GContext *ctx) {
     GRect text_rect = GRect(cur_x,
       center_y - text_size.h / 2 - SMALL_FONT_BOTTOM_MARGIN,
       text_size.w + 2, text_size.h);
-    graphics_context_set_text_color(ctx, GColorWhite);
+    graphics_context_set_text_color(ctx, fg);
     graphics_draw_text(ctx, data->text, data->config.font, text_rect,
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
   }
