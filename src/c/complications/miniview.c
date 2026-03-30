@@ -107,7 +107,6 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_antialiased(ctx, false);
   prv_draw_background(ctx, center, radius);
   prv_draw_border_decoration(ctx, center, radius, inner_radius);
-  graphics_context_set_antialiased(ctx, true);
 
   switch (data->config.mode) {
     case MINIVIEW_MODE_TEXT_STACK:

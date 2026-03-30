@@ -194,6 +194,7 @@ static void graph_update_proc(Layer *layer, GContext *ctx) {
   GraphData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
 
+  graphics_context_set_antialiased(ctx, false);
   prv_draw_header(ctx, data, bounds);
   prv_draw_axes(ctx, data);
   prv_draw_data(ctx, data);

@@ -55,6 +55,8 @@ static void glyph_layer_update_proc(Layer *layer, GContext *ctx) {
   TimeDisplayData *data = *(TimeDisplayData **)layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
 
+  graphics_context_set_antialiased(ctx, false);
+
   int16_t glyph_w = prv_glyph_total_width(data->time_str);
   int16_t x = prv_compute_time_x(bounds.size.w, glyph_w,
     data->seconds_visible || data->seconds_reserved);

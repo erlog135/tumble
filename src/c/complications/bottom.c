@@ -39,6 +39,9 @@ static int16_t prv_compute_content_width(BottomData *data, GRect bounds) {
 static void bottom_update_proc(Layer *layer, GContext *ctx) {
   BottomData *data = layer_get_data(layer);
   GRect bounds = layer_get_bounds(layer);
+
+  graphics_context_set_antialiased(ctx, false);
+
   int16_t center_y = bounds.size.h / 2;
 
   GSize icon_size = GSizeZero;

@@ -85,6 +85,7 @@ static void update_tick_subscription(void) {
 
 #if DRAW_DEBUG_RECTANGLES
 static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
+    graphics_context_set_antialiased(ctx, false);
     graphics_context_set_stroke_color(ctx, GColorWhite);
     graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
     graphics_draw_rect(ctx, s_layout.miniview_bounds);
