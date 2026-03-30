@@ -19,6 +19,8 @@ typedef struct {
 #define BORDER_ARC_DEGREES 80
 #define BORDER_DOT_WIDTH 3
 #define BORDER_DECORATION_INNER_MARGIN 3
+/** Inset compass ticks only, so they do not touch the outer black ring edge. */
+#define BORDER_DECORATION_DOT_OUTER_MARGIN 1
 
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
 #define DOT_RING_INSET 10  // inset from inner_radius to the centre of the dot/icon ring
@@ -28,16 +30,11 @@ typedef struct {
 
 #define ICON_COLUMN_SPACING 15  // pixels between the middle icon and each outer icon
 
-/** @param white_face true: white fill and black ring (default miniview); false: black fill and white ring. */
+/** @param white_face true: white inner fill; false: black inner fill. Border is always a black outline with white details (see prv_draw_border_decoration). */
 static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius, bool white_face) {
-  if (white_face) {
-    graphics_context_set_fill_color(ctx, GColorWhite);
-    graphics_context_set_stroke_color(ctx, GColorBlack);
-  } else {
-    graphics_context_set_fill_color(ctx, GColorBlack);
-    graphics_context_set_stroke_color(ctx, GColorWhite);
-  }
+  graphics_context_set_fill_color(ctx, white_face ? GColorWhite : GColorBlack);
   graphics_fill_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE);
+  graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_context_set_stroke_width(ctx, MINIVIEW_BORDER_SIZE);
   graphics_draw_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE / 2);
 }
@@ -46,6 +43,11 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
     uint16_t radius, uint16_t inner_radius) {
   uint16_t deco_radius = inner_radius + BORDER_DECORATION_INNER_MARGIN;
   uint16_t dot_length = MINIVIEW_BORDER_SIZE - BORDER_DECORATION_INNER_MARGIN;
+  uint16_t dot_m = BORDER_DECORATION_DOT_OUTER_MARGIN;
+  if (dot_length <= dot_m) {
+    dot_m = 0;
+  }
+  uint16_t dot_draw_len = dot_length - dot_m;
 
   graphics_context_set_stroke_color(ctx, GColorWhite);
   graphics_context_set_stroke_width(ctx, 1);
@@ -66,17 +68,17 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
       arc_centers[i] - half_arc, arc_centers[i] + half_arc);
   }
 
-  // 4 dots at exact compass positions, from inner margin to outer edge
+  // 4 dots at compass positions; shortened on the outer side so they clear the ring edge
   int16_t hw = BORDER_DOT_WIDTH / 2;
   graphics_context_set_fill_color(ctx, GColorWhite);
-  graphics_fill_rect(ctx, GRect(center.x - hw, center.y - radius,
-      BORDER_DOT_WIDTH, dot_length), 0, GCornerNone); /* N */
+  graphics_fill_rect(ctx, GRect(center.x - hw, center.y - radius + dot_m,
+      BORDER_DOT_WIDTH, dot_draw_len), 0, GCornerNone); /* N */
   graphics_fill_rect(ctx, GRect(center.x + deco_radius, center.y - hw,
-      dot_length, BORDER_DOT_WIDTH), 0, GCornerNone); /* E */
+      dot_draw_len, BORDER_DOT_WIDTH), 0, GCornerNone); /* E */
   graphics_fill_rect(ctx, GRect(center.x - hw, center.y + deco_radius,
-      BORDER_DOT_WIDTH, dot_length), 0, GCornerNone); /* S */
-  graphics_fill_rect(ctx, GRect(center.x - radius, center.y - hw,
-      dot_length, BORDER_DOT_WIDTH), 0, GCornerNone); /* W */
+      BORDER_DOT_WIDTH, dot_draw_len), 0, GCornerNone); /* S */
+  graphics_fill_rect(ctx, GRect(center.x - radius + dot_m, center.y - hw,
+      dot_draw_len, BORDER_DOT_WIDTH), 0, GCornerNone); /* W */
 }
 
 static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint center,
@@ -105,11 +107,11 @@ static GFont prv_font_for_medium_line(const MiniviewData *data, const char *text
 }
 
 static GColor prv_miniview_text_color(void) {
-  return settings_get()->invert_miniview ? GColorBlack : GColorWhite;
+  return settings_get()->black_miniview_bg ? GColorWhite : GColorBlack;
 }
 
 static GCompOp prv_miniview_icon_op(void) {
-  return settings_get()->invert_miniview ? GCompOpAssignInverted : GCompOpAssign;
+  return settings_get()->black_miniview_bg ? GCompOpAssign : GCompOpAssignInverted;
 }
 
 static void miniview_update_proc(Layer *layer, GContext *ctx) {
@@ -121,7 +123,7 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
 
   graphics_context_set_antialiased(ctx, false);
   bool sun_clock = (data->config.mode == MINIVIEW_MODE_CLOCK_DOTS);
-  bool white_face = sun_clock || settings_get()->invert_miniview;
+  bool white_face = sun_clock || !settings_get()->black_miniview_bg;
   prv_draw_background(ctx, center, radius, white_face);
   prv_draw_border_decoration(ctx, center, radius, inner_radius);
 

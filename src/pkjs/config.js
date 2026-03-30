@@ -58,8 +58,8 @@ module.exports = [
       },
       {
         "type": "toggle",
-        "messageKey": "CFG_INVERT_MINIVIEW",
-        "label": "Invert Miniview",
+        "messageKey": "CFG_BLACK_MINIVIEW_BG",
+        "label": "Black mini-view background",
         "defaultValue": true
       }
     ]
@@ -128,7 +128,7 @@ module.exports = [
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Miniview"
+        "defaultValue": "Mini-view"
       },
       {
         "type": "select",

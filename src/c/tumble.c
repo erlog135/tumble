@@ -6,6 +6,7 @@
 
 static Window *s_main_window;
 static Layer *s_time_display_layer;
+static Layer *s_miniview_corner_layer;
 static AppTimer *s_shake_timer = NULL;
 #if DRAW_DEBUG_RECTANGLES
 static Layer *s_debug_layer;
@@ -83,6 +84,51 @@ static void update_tick_subscription(void) {
 #endif
 }
 
+/** On light window bg, two black rects behind the miniview suggest a rounded-rectangle card cutout. */
+static void prv_miniview_corner_update_proc(Layer *layer, GContext *ctx) {
+    (void)layer;
+    if (settings_get()->black_bg) {
+        return;
+    }
+    Layer *mv = providers_get_layer(COMPLICATION_MINIVIEW);
+    if (!mv) {
+        return;
+    }
+    GRect window_bounds = layer_get_bounds(layer);
+    GRect frame = layer_get_frame(mv);
+    int16_t w = window_bounds.size.w;
+    GPoint center = GPoint(
+        frame.origin.x + frame.size.w / 2,
+        frame.origin.y + frame.size.h / 2);
+    int16_t bottom_mv = frame.origin.y + frame.size.h;
+
+    graphics_context_set_antialiased(ctx, false);
+    graphics_context_set_fill_color(ctx, GColorBlack);
+    /* From miniview centre to bottom-right of miniview frame (screen right). */
+    graphics_fill_rect(ctx,
+        GRect(center.x, center.y, w - center.x, bottom_mv - center.y),
+        0, GCornerNone);
+    /* From top of screen, miniview left edge, to screen right and miniview vertical centre. */
+    graphics_fill_rect(ctx,
+        GRect(frame.origin.x, 0, w - frame.origin.x, center.y),
+        0, GCornerNone);
+}
+
+static void prv_refresh_miniview_corner_layer(Layer *window_layer) {
+    if (!s_miniview_corner_layer) {
+        return;
+    }
+    layer_remove_from_parent(s_miniview_corner_layer);
+    layer_add_child(window_layer, s_miniview_corner_layer);
+    Layer *mv = providers_get_layer(COMPLICATION_MINIVIEW);
+    if (mv) {
+        layer_insert_below_sibling(s_miniview_corner_layer, mv);
+    }
+    bool hide = settings_get()->black_bg || !mv;
+    layer_set_hidden(s_miniview_corner_layer, hide);
+    layer_mark_dirty(s_miniview_corner_layer);
+}
+
 #if DRAW_DEBUG_RECTANGLES
 static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_antialiased(ctx, false);
@@ -120,8 +166,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
         s->black_bg = (bool)prv_tuple_int(cfg_t);
 
         Tuple *t;
-        if ((t = dict_find(iter, MESSAGE_KEY_CFG_INVERT_MINIVIEW)))
-            s->invert_miniview = (bool)prv_tuple_int(t);
+        if ((t = dict_find(iter, MESSAGE_KEY_CFG_BLACK_MINIVIEW_BG)))
+            s->black_miniview_bg = (bool)prv_tuple_int(t);
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_WEATHER_OPTION)))
             s->weather_option = (uint8_t)prv_tuple_int(t);
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_WEATHER_REFRESH_INTERVAL)))
@@ -156,6 +202,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
         providers_apply_settings();
         providers_mark_layers_dirty();
+        prv_refresh_miniview_corner_layer(window_get_root_layer(s_main_window));
         if (s_time_display_layer) {
             time_display_apply_settings(s_time_display_layer);
         }
@@ -212,6 +259,10 @@ static void main_window_load(Window *window) {
     providers_init(window_layer, &s_layout, s_font_small, s_font_medium);
     providers_apply_settings();
 
+    s_miniview_corner_layer = layer_create(bounds);
+    layer_set_update_proc(s_miniview_corner_layer, prv_miniview_corner_update_proc);
+    prv_refresh_miniview_corner_layer(window_layer);
+
 #if DRAW_DEBUG_RECTANGLES
     s_debug_layer = layer_create(bounds);
     layer_set_update_proc(s_debug_layer, debug_layer_update_proc);
@@ -227,6 +278,10 @@ static void main_window_unload(Window *window) {
 #if DRAW_DEBUG_RECTANGLES
     layer_destroy(s_debug_layer);
 #endif
+    if (s_miniview_corner_layer) {
+        layer_destroy(s_miniview_corner_layer);
+        s_miniview_corner_layer = NULL;
+    }
     providers_deinit();
     time_display_destroy(s_time_display_layer);
     fonts_unload_custom_font(s_font_medium);

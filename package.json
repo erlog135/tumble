@@ -32,7 +32,7 @@
     ],
     "messageKeys": [
       "CFG_BLACK_BG",
-      "CFG_INVERT_MINIVIEW",
+      "CFG_BLACK_MINIVIEW_BG",
       "CFG_UNIT_TEMP",
       "CFG_UNIT_ALTITUDE",
       "CFG_UNIT_PRESSURE",

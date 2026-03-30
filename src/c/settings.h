@@ -71,7 +71,7 @@ typedef enum {
 
 typedef struct {
     bool black_bg;
-    bool invert_miniview;
+    bool black_miniview_bg;
     uint8_t weather_option;
     uint8_t weather_refresh_interval;
     uint8_t unit_temp;
