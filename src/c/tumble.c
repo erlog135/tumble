@@ -84,6 +84,80 @@ static void update_tick_subscription(void) {
 #endif
 }
 
+#if !defined(PBL_ROUND) && !defined(PBL_PLATFORM_APLITE)
+static void prv_apply_unobstructed_layout(void) {
+    if (!s_main_window || !s_time_display_layer) {
+        return;
+    }
+    Layer *wl = window_get_root_layer(s_main_window);
+    GRect full = layer_get_bounds(wl);
+    GRect unob = layer_get_unobstructed_bounds(wl);
+    bool obstructed = !grect_equal(&full, &unob);
+
+    Layer *bl = providers_get_layer(COMPLICATION_BOTTOM_LEFT);
+    Layer *br = providers_get_layer(COMPLICATION_BOTTOM_RIGHT);
+    if (bl) {
+        layer_set_hidden(bl, obstructed);
+    }
+    if (br) {
+        layer_set_hidden(br, obstructed);
+    }
+
+    GRect tb = s_layout.time_layer_bounds;
+    if (obstructed) {
+        /* Vertically center the glyph band between the bottom of the top section
+         * (TOP_SECTION_HEIGHT_RATIO) and the bottom of the unobstructed area. */
+        int16_t bottom_top = s_layout.top_section_bounds.origin.y
+            + s_layout.top_section_bounds.size.h;
+        int16_t bottom_unob = unob.origin.y + unob.size.h;
+        int16_t band_h = bottom_unob - bottom_top;
+        int16_t tight_h = BITMAP_GLYPH_HEIGHT;
+        int16_t y = bottom_top + (band_h - tight_h) / 2;
+        if (y < bottom_top) {
+            y = bottom_top;
+        }
+        if (y + tight_h > bottom_unob) {
+            y = bottom_unob - tight_h;
+        }
+        if (y < bottom_top) {
+            y = bottom_top;
+        }
+        layer_set_frame(s_time_display_layer,
+            GRect(tb.origin.x, y-2, tb.size.w, tight_h)); //funny magic number
+    } else {
+        layer_set_frame(s_time_display_layer, tb);
+    }
+    time_display_sync_container_bounds(s_time_display_layer);
+}
+
+static void prv_unobstructed_will_change(GRect final_unobstructed_screen_area, void *context) {
+    (void)context;
+    if (!s_main_window) {
+        return;
+    }
+    Layer *wl = window_get_root_layer(s_main_window);
+    GRect full = layer_get_bounds(wl);
+    if (final_unobstructed_screen_area.size.h < full.size.h) {
+        Layer *bl = providers_get_layer(COMPLICATION_BOTTOM_LEFT);
+        Layer *br = providers_get_layer(COMPLICATION_BOTTOM_RIGHT);
+        if (bl) {
+            layer_set_hidden(bl, true);
+        }
+        if (br) {
+            layer_set_hidden(br, true);
+        }
+    }
+}
+
+static void prv_unobstructed_did_change(void *context) {
+    (void)context;
+    prv_apply_unobstructed_layout();
+}
+#else
+static void prv_apply_unobstructed_layout(void) {
+}
+#endif
+
 /** On light window bg, two black rects behind the miniview suggest a rounded-rectangle card cutout. */
 static void prv_miniview_corner_update_proc(Layer *layer, GContext *ctx) {
     (void)layer;
@@ -207,6 +281,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
             time_display_apply_settings(s_time_display_layer);
         }
         update_tick_subscription();
+        prv_apply_unobstructed_layout();
         return;
     }
 
@@ -269,11 +344,26 @@ static void main_window_load(Window *window) {
     layer_add_child(window_layer, s_debug_layer);
 #endif
 
+#if !defined(PBL_ROUND) && !defined(PBL_PLATFORM_APLITE)
+    {
+        UnobstructedAreaHandlers handlers = {
+            .will_change = prv_unobstructed_will_change,
+            .did_change = prv_unobstructed_did_change,
+        };
+        unobstructed_area_service_subscribe(handlers, NULL);
+    }
+    prv_apply_unobstructed_layout();
+#else
     update_time();
+#endif
 }
 
 static void main_window_unload(Window *window) {
     (void)window;
+
+#if !defined(PBL_ROUND) && !defined(PBL_PLATFORM_APLITE)
+    unobstructed_area_service_unsubscribe();
+#endif
 
 #if DRAW_DEBUG_RECTANGLES
     layer_destroy(s_debug_layer);

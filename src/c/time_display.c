@@ -144,6 +144,14 @@ Layer *time_display_create(GRect bounds, GFont seconds_font) {
   return layer;
 }
 
+void time_display_sync_container_bounds(Layer *layer) {
+  TimeDisplayData *data = layer_get_data(layer);
+  GRect b = layer_get_bounds(layer);
+  layer_set_frame(data->glyph_layer, GRect(0, 0, b.size.w, b.size.h));
+  time_t now = time(NULL);
+  time_display_set_time(layer, localtime(&now));
+}
+
 void time_display_destroy(Layer *layer) {
   TimeDisplayData *data = layer_get_data(layer);
   if (data->glyph_layer) {

@@ -5,7 +5,7 @@
 static ClaySettings settings;
 
 static void prv_default_settings(void) {
-    settings.black_bg = false;
+    settings.black_bg = true;
     settings.black_miniview_bg = false;
     settings.weather_option = WEATHER_OPTION_OPEN_METEO;
     settings.weather_refresh_interval = 30;
