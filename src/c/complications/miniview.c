@@ -53,7 +53,7 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
   graphics_context_set_stroke_width(ctx, 1);
 
   GRect arc_rect = GRect(center.x - deco_radius, center.y - deco_radius,
-      2 * deco_radius, 2 * deco_radius);
+      2 * deco_radius + 1, 2 * deco_radius + 1);
   int32_t half_arc = DEG_TO_TRIGANGLE(BORDER_ARC_DEGREES / 2);
 
   // 4 arcs at N, E, S, W (0°, 90°, 180°, 270°), inset from inner edge
@@ -73,9 +73,9 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_fill_rect(ctx, GRect(center.x - hw, center.y - radius + dot_m,
       BORDER_DOT_WIDTH, dot_draw_len), 0, GCornerNone); /* N */
-  graphics_fill_rect(ctx, GRect(center.x + deco_radius, center.y - hw,
+  graphics_fill_rect(ctx, GRect(center.x + deco_radius + 1, center.y - hw,
       dot_draw_len, BORDER_DOT_WIDTH), 0, GCornerNone); /* E */
-  graphics_fill_rect(ctx, GRect(center.x - hw, center.y + deco_radius,
+  graphics_fill_rect(ctx, GRect(center.x - hw, center.y + deco_radius + 1,
       BORDER_DOT_WIDTH, dot_draw_len), 0, GCornerNone); /* S */
   graphics_fill_rect(ctx, GRect(center.x - radius + dot_m, center.y - hw,
       dot_draw_len, BORDER_DOT_WIDTH), 0, GCornerNone); /* W */
