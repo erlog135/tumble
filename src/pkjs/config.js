@@ -40,20 +40,25 @@ var TZ_OPTIONS = [
 module.exports = [
   {
     "type": "heading",
-    "defaultValue": "Tumble Settings",
+    "defaultValue": "Tumble",
     "size": 1
+  },
+  {
+    "type": "heading",
+    "defaultValue": "Preferences",
+    "size": 3
   },
   {
     "type": "section",
     "items": [
       {
         "type": "heading",
-        "defaultValue": "General"
+        "defaultValue": "Appearance"
       },
       {
         "type": "toggle",
         "messageKey": "CFG_BLACK_BG",
-        "label": "Black Background",
+        "label": "Black background",
         "defaultValue": true
       },
       {
@@ -128,59 +133,19 @@ module.exports = [
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Mini-view"
-      },
-      {
-        "type": "select",
-        "messageKey": "CFG_MINIVIEW_OPTION",
-        "label": "Display",
-        "defaultValue": "1",
-        "options": [
-          { "label": "Month & date",                 "value": "0"  },
-          { "label": "Day of week & date",           "value": "1"  },
-          { "label": "Heart rate",                   "value": "2"  },
-          { "label": "Steps",                        "value": "3"  },
-          { "label": "Calories",                     "value": "4"  },
-          { "label": "Altitude",                     "value": "5"  },
-          { "label": "Air pressure",                 "value": "6"  },
-          { "label": "Sunrise / Sunset time",        "value": "7"  },
-          { "label": "Current weather",              "value": "8"  },
-          { "label": "Custom time zone",             "value": "9"  },
-          { "label": "Current sun position",         "value": "10" },
-          { "label": "Current moon phase",           "value": "11" },
-          { "label": "Battery",                      "value": "12" },
-          { "label": "Battery / Quiet Time / BT status", "value": "13" }
-        ]
-      }
-    ]
-  },
-  {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Time Zone"
+        "defaultValue": "Time"
       },
       {
         "type": "select",
         "messageKey": "CFG_TZ_OFFSET",
-        "label": "Custom Time Zone",
+        "label": "Custom time zone",
         "defaultValue": "0",
         "options": TZ_OPTIONS
-      }
-    ]
-  },
-  {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Seconds"
       },
       {
         "type": "select",
         "messageKey": "CFG_SECONDS_OPTION",
-        "label": "Display",
+        "label": "Seconds visibility",
         "defaultValue": "0",
         "options": [
           { "label": "Always on",          "value": "0" },
@@ -192,39 +157,53 @@ module.exports = [
     ]
   },
   {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Graph"
-      },
-      {
-        "type": "select",
-        "messageKey": "CFG_GRAPH_OPTION",
-        "label": "Display",
-        "defaultValue": "5",
-        "options": [
-          { "label": "Steps",        "value": "0" },
-          { "label": "Heart rate",   "value": "1" },
-          { "label": "Air pressure", "value": "2" },
-          { "label": "Altitude",     "value": "3" },
-          { "label": "Battery",      "value": "4" },
-          { "label": "Temperature",  "value": "5" }
-        ]
-      }
-    ]
+    "type": "heading",
+    "defaultValue": "Complications",
+    "size": 3
   },
   {
     "type": "section",
     "items": [
       {
-        "type": "heading",
-        "defaultValue": "Bottom Left"
+        "type": "select",
+        "messageKey": "CFG_GRAPH_OPTION",
+        "label": "Graph",
+        "defaultValue": "5",
+        "options": [
+          { "label": "Steps (24h)",        "value": "0" },
+          { "label": "Heart rate (4h)",   "value": "1" },
+          { "label": "Air pressure (24h)", "value": "2" },
+          { "label": "Elevation (24h)",     "value": "3" },
+          { "label": "Battery (3d)",      "value": "4" },
+          { "label": "Temperature (24h)",  "value": "5" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "CFG_MINIVIEW_OPTION",
+        "label": "Mini-view",
+        "defaultValue": "1",
+        "options": [
+          { "label": "Month & date",                 "value": "0"  },
+          { "label": "Day of week & date",           "value": "1"  },
+          { "label": "Heart rate",                   "value": "2"  },
+          { "label": "Steps",                        "value": "3"  },
+          { "label": "Calories",                     "value": "4"  },
+          { "label": "Elevation",                    "value": "5"  },
+          { "label": "Air pressure",                 "value": "6"  },
+          { "label": "Sunrise / Sunset time",        "value": "7"  },
+          { "label": "Current weather",              "value": "8"  },
+          { "label": "Custom time zone",             "value": "9"  },
+          { "label": "Current sun position",         "value": "10" },
+          { "label": "Current moon phase",           "value": "11" },
+          { "label": "Battery",                      "value": "12" },
+          { "label": "Battery / Quiet Time / BT status", "value": "13" }
+        ]
       },
       {
         "type": "select",
         "messageKey": "CFG_BOTTOM_LEFT_OPTION",
-        "label": "Display",
+        "label": "Bottom left",
         "defaultValue": "8",
         "options": [
           { "label": "Month & date",              "value": "0" },
@@ -232,28 +211,19 @@ module.exports = [
           { "label": "Steps",                     "value": "2" },
           { "label": "Heart rate",                "value": "3" },
           { "label": "Calories",                  "value": "4" },
-          { "label": "Altitude",                  "value": "5" },
+          { "label": "Elevation",                 "value": "5" },
           { "label": "Air pressure",              "value": "6" },
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },
           { "label": "Temperature",               "value": "9" },
-          { "label": "Battery",                  "value": "10" },
+          { "label": "Battery",                   "value": "10" },
           { "label": "Custom time zone",          "value": "11" }
         ]
-      }
-    ]
-  },
-  {
-    "type": "section",
-    "items": [
-      {
-        "type": "heading",
-        "defaultValue": "Bottom Right"
       },
       {
         "type": "select",
         "messageKey": "CFG_BOTTOM_RIGHT_OPTION",
-        "label": "Display",
+        "label": "Bottom right",
         "defaultValue": "10",
         "options": [
           { "label": "Month & date",              "value": "0" },
@@ -261,7 +231,7 @@ module.exports = [
           { "label": "Steps",                     "value": "2" },
           { "label": "Heart rate",                "value": "3" },
           { "label": "Calories",                  "value": "4" },
-          { "label": "Altitude",                  "value": "5" },
+          { "label": "Elevation",                 "value": "5" },
           { "label": "Air pressure",              "value": "6" },
           { "label": "Pressure trend",            "value": "7" },
           { "label": "Sunrise / Sunset time",     "value": "8" },

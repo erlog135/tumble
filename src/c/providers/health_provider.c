@@ -13,10 +13,11 @@ static int8_t prv_scale_steps(int steps) {
   return (int8_t)(steps > 1270 ? 127 : steps / 10);
 }
 
-// Heart rate: 0–254 bpm → 0–127  (1 unit = 2 bpm).  0 bpm = no reading → invalid.
-static int8_t prv_scale_hr(int bpm) {
+// HR graph: 0–200 bpm → 0–127 for GraphConfig (fixed_range 0–127 ≡ 0–200 bpm).
+static int8_t prv_scale_hr_graph(int bpm) {
   if (bpm <= 0) return HISTORY_INVALID;
-  return (int8_t)(bpm > 254 ? 127 : bpm / 2);
+  if (bpm > 200) bpm = 200;
+  return (int8_t)((bpm * 127) / 200);
 }
 
 static void prv_build_steps_history(int8_t *out, uint8_t *out_count) {
@@ -85,7 +86,7 @@ static void prv_hr_graph_history_update_from_peek(void) {
     s_hr_graph.sum_bpm += (uint32_t)hr;
     s_hr_graph.peek_count++;
     int avg_bpm = (int)(s_hr_graph.sum_bpm / s_hr_graph.peek_count);
-    s_hr_graph.points[0] = prv_scale_hr(avg_bpm);
+    s_hr_graph.points[0] = prv_scale_hr_graph(avg_bpm);
   }
 
   prv_hr_graph_history_persist();
@@ -191,13 +192,16 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_GRAPH: {
       GraphStyle style = (option == GRAPH_OPTION_HEART_RATE)
         ? GRAPH_STYLE_LINE : GRAPH_STYLE_BARS;
-      uint8_t h_markers = (option == GRAPH_OPTION_HEART_RATE) ? 4 : 0;
+      uint8_t h_markers = (option == GRAPH_OPTION_HEART_RATE) ? 3 : 0;
       layer = graph_create(layout->graph_layer_bounds,
                            layout->graph_plot_bounds, (GraphConfig) {
         .style = style,
         .h_markers = h_markers,
         .v_markers = 0,
         .top_lip = (option == GRAPH_OPTION_STEPS),
+        .fixed_range = (option == GRAPH_OPTION_HEART_RATE),
+        .fixed_min = 0,
+        .fixed_max = 127,
         .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
       });
