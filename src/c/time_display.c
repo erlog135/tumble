@@ -64,7 +64,7 @@ static void glyph_layer_update_proc(Layer *layer, GContext *ctx) {
   int16_t y = (bounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
 
   graphics_context_set_compositing_mode(ctx,
-      settings_get()->black_bg ? GCompOpSet : GCompOpAssignInverted);
+      settings_get()->black_bg ? GCompOpAssign : GCompOpAssignInverted);
 
   for (const char *p = data->time_str; *p; p++) {
     int8_t idx = prv_char_to_glyph_index(*p);

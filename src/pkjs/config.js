@@ -60,7 +60,7 @@ module.exports = [
         "type": "toggle",
         "messageKey": "CFG_BLACK_MINIVIEW_BG",
         "label": "Black mini-view background",
-        "defaultValue": true
+        "defaultValue": false
       }
     ]
   },

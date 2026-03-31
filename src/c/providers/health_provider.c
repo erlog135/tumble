@@ -4,6 +4,7 @@
 #include "../complications/miniview.h"
 #include "../complications/bottom.h"
 #include "../settings.h"
+#include <string.h>
 
 #if defined(PBL_HEALTH)
 // Steps (per hour): 0–1270 → 0–127  (1 unit = 10 steps)
@@ -29,36 +30,88 @@ static void prv_build_steps_history(int8_t *out, uint8_t *out_count) {
   *out_count = HISTORY_24H_LEN;
 }
 
-static void prv_build_hr_history(int8_t *out, uint8_t *out_count) {
+// Peek-based HR graph: one value per 10-minute bucket (4h window). Persisted like
+// battery history; only updated while the graph shows heart rate (prv_update_graph).
+typedef struct {
+  int8_t   points[HISTORY_4H_LEN];
+  uint32_t bucket_epoch;
+  uint32_t sum_bpm;
+  uint8_t  peek_count;
+  uint8_t  hist_ready;
+} HeartRateGraphHistory;
+
+static HeartRateGraphHistory s_hr_graph;
+
+static void prv_hr_graph_history_persist(void) {
+  persist_write_data(PERSIST_KEY_HEALTH_HISTORY, &s_hr_graph, sizeof(s_hr_graph));
+}
+
+static void prv_hr_graph_history_update_from_peek(void) {
   time_t now = time(NULL);
-  for (int i = 0; i < HISTORY_4H_LEN; i++) {
-    time_t end   = now - (time_t)(i * 10 * 60);
-    time_t start = end - (10 * 60);
-    HealthValue avg = health_service_aggregate_averaged(
-        HealthMetricHeartRateBPM, start, end,
-        HealthAggregationAvg, HealthServiceTimeScopeOnce);
-    out[i] = prv_scale_hr((int)avg);
+  uint32_t bucket = (uint32_t)(now / 600);
+
+  if (!s_hr_graph.hist_ready) {
+    memset(s_hr_graph.points, HISTORY_INVALID, sizeof(s_hr_graph.points));
+    s_hr_graph.bucket_epoch = bucket;
+    s_hr_graph.hist_ready = 1;
+    s_hr_graph.sum_bpm = 0;
+    s_hr_graph.peek_count = 0;
+  } else if (bucket < s_hr_graph.bucket_epoch) {
+    memset(s_hr_graph.points, HISTORY_INVALID, sizeof(s_hr_graph.points));
+    s_hr_graph.bucket_epoch = bucket;
+    s_hr_graph.sum_bpm = 0;
+    s_hr_graph.peek_count = 0;
+    s_hr_graph.hist_ready = 1;
+  } else {
+    uint32_t delta = bucket - s_hr_graph.bucket_epoch;
+    if (delta > 0) {
+      if (delta >= HISTORY_4H_LEN) {
+        memset(s_hr_graph.points, HISTORY_INVALID, sizeof(s_hr_graph.points));
+      } else {
+        for (uint32_t k = 0; k < delta; k++) {
+          memmove(&s_hr_graph.points[1], &s_hr_graph.points[0],
+                  (HISTORY_4H_LEN - 1) * sizeof(int8_t));
+          s_hr_graph.points[0] = HISTORY_INVALID;
+        }
+      }
+      s_hr_graph.bucket_epoch = bucket;
+      s_hr_graph.sum_bpm = 0;
+      s_hr_graph.peek_count = 0;
+    }
   }
-  *out_count = HISTORY_4H_LEN;
+
+  HealthValue hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
+  if (hr > 0) {
+    s_hr_graph.sum_bpm += (uint32_t)hr;
+    s_hr_graph.peek_count++;
+    int avg_bpm = (int)(s_hr_graph.sum_bpm / s_hr_graph.peek_count);
+    s_hr_graph.points[0] = prv_scale_hr(avg_bpm);
+  }
+
+  prv_hr_graph_history_persist();
 }
 #endif
 
 static uint32_t prv_icon_for_graph_option(uint8_t option) {
-  (void)option;
-  return RESOURCE_ID_ICON_STEPS;
+  switch (option) {
+    case GRAPH_OPTION_HEART_RATE: return RESOURCE_ID_ICON_HEART_RATE;
+    default:                      return RESOURCE_ID_ICON_STEPS;
+  }
 }
 
 static uint32_t prv_icon_for_miniview_option(uint8_t option) {
   switch (option) {
-    case MINIVIEW_OPTION_CALORIES: return RESOURCE_ID_ICON_CALORIES;
-    default:                       return RESOURCE_ID_ICON_STEPS;
+    case MINIVIEW_OPTION_CALORIES:  return RESOURCE_ID_ICON_CALORIES;
+    case MINIVIEW_OPTION_HEART_RATE: return RESOURCE_ID_ICON_HEART_RATE;
+    default:                        return RESOURCE_ID_ICON_STEPS;
   }
 }
 
 static uint32_t prv_icon_for_bottom_option(uint8_t option) {
   switch (option) {
-    case BOTTOM_OPTION_CALORIES: return RESOURCE_ID_ICON_CALORIES;
-    default:                     return RESOURCE_ID_ICON_STEPS;
+    case BOTTOM_OPTION_CALORIES:  return RESOURCE_ID_ICON_CALORIES;
+    case BOTTOM_OPTION_HEART_RATE: return RESOURCE_ID_ICON_HEART_RATE;
+    default:                       return RESOURCE_ID_ICON_STEPS;
   }
 }
 
@@ -84,7 +137,9 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
   uint8_t count = 0;
 #if defined(PBL_HEALTH)
   if (option == GRAPH_OPTION_HEART_RATE) {
-    prv_build_hr_history(vals, &count);
+    prv_hr_graph_history_update_from_peek();
+    memcpy(vals, s_hr_graph.points, sizeof(s_hr_graph.points));
+    count = HISTORY_4H_LEN;
   } else {
     prv_build_steps_history(vals, &count);
   }
@@ -96,7 +151,7 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
 #if defined(PBL_HEALTH)
   if (option == GRAPH_OPTION_HEART_RATE) {
     HealthValue hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
-    if (hr > 0) snprintf(buf, sizeof(buf), "%d bpm", (int)hr);
+    if (hr > 0) snprintf(buf, sizeof(buf), "%d", (int)hr);
   } else {
     HealthValue steps = health_service_sum_today(HealthMetricStepCount);
     if (steps > 0) snprintf(buf, sizeof(buf), "%d", (int)steps);
@@ -110,6 +165,9 @@ void health_provider_init(void) {
   memset(s_slots, 0, sizeof(s_slots));
 #if defined(PBL_HEALTH)
   s_subscribed = false;
+  memset(&s_hr_graph, 0, sizeof(s_hr_graph));
+  memset(s_hr_graph.points, HISTORY_INVALID, sizeof(s_hr_graph.points));
+  persist_read_data(PERSIST_KEY_HEALTH_HISTORY, &s_hr_graph, sizeof(s_hr_graph));
 #endif
 }
 
@@ -139,7 +197,7 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
         .style = style,
         .h_markers = h_markers,
         .v_markers = 0,
-        .top_lip = true,
+        .top_lip = (option == GRAPH_OPTION_STEPS),
         .label_font = font_small,
         .icon_resource_id = prv_icon_for_graph_option(option),
       });
@@ -253,12 +311,12 @@ static void prv_update_bottom(Layer *layer, uint8_t option) {
     }
     case BOTTOM_OPTION_HEART_RATE: {
       HealthValue hr = health_service_peek_current_value(HealthMetricHeartRateBPM);
-      if (hr > 0) snprintf(buf, sizeof(buf), "%d bpm", (int)hr);
+      if (hr > 0) snprintf(buf, sizeof(buf), "%d", (int)hr);
       break;
     }
     case BOTTOM_OPTION_CALORIES: {
       HealthValue cal = health_service_sum_today(HealthMetricActiveKCalories);
-      if (cal > 0) snprintf(buf, sizeof(buf), "%d cal", (int)cal);
+      if (cal > 0) snprintf(buf, sizeof(buf), "%d", (int)cal);
       break;
     }
     default:
