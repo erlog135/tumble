@@ -5,6 +5,8 @@
 #define GRAPH_H_MARKER_SIZE 3
 // How far side-axis tick marks extend inward (pixels)
 #define GRAPH_V_MARKER_SIZE 6
+// Max-scaled data stays this many pixels below the plot top when top_lip is drawn
+#define GRAPH_TOP_LIP_VALUE_INSET 2
 // Size of each checker square in the filled graph mode (1 = single pixel, 2 = 2x2 blocks, etc.)
 #define GRAPH_FILL_CHECKER_SIZE 2
 // Gap between the header icon and label text (pixels)

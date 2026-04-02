@@ -63,17 +63,20 @@
         {
           "type": "font",
           "name": "BEBAS_NEUE_36",
-          "file": "fonts/BebasNeue-Regular.ttf"
+          "file": "fonts/BebasNeue-Regular.ttf",
+          "characterRegex": "^[A-Z0-9.:°-]"
         },
         {
           "type": "font",
           "name": "BEBAS_NEUE_28",
-          "file": "fonts/BebasNeue-Regular.ttf"
+          "file": "fonts/BebasNeue-Regular.ttf",
+          "characterRegex": "^[A-Z0-9.:°-]"
         },
         {
           "type": "font",
           "name": "BEBAS_NEUE_20",
-          "file": "fonts/BebasNeue-Regular.ttf"
+          "file": "fonts/BebasNeue-Regular.ttf",
+          "characterRegex": "^[A-Z0-9.:°-]"
         },
         {
           "type": "font",

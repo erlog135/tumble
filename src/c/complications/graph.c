@@ -23,10 +23,16 @@ static inline uint8_t prv_arr_to_disp(uint8_t arr_idx, uint8_t count) {
   return count - 1 - arr_idx;
 }
 
-static int16_t prv_value_to_y(int8_t value, int16_t mn, int16_t mx, GRect plot) {
+static int16_t prv_value_to_y(int8_t value, int16_t mn, int16_t mx, GRect plot,
+    uint8_t top_inset_px) {
   if (mx == mn) return plot.origin.y + plot.size.h - 1;
+  int32_t span = (int32_t)plot.size.h - 1 - (int32_t)top_inset_px;
+  if (span < 1) {
+    span = (int32_t)plot.size.h - 1;
+    if (span < 1) span = 1;
+  }
   return plot.origin.y + plot.size.h - 1
-    - (int16_t)((int32_t)(value - mn) * (plot.size.h - 1) / (mx - mn));
+    - (int16_t)((int32_t)(value - mn) * span / (mx - mn));
 }
 
 static void prv_draw_header(GContext *ctx, GraphData *data, GRect bounds,
@@ -106,6 +112,7 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
 
   GRect plot = data->plot_bounds;
   int16_t y_bot = plot.origin.y + plot.size.h - 1;
+  uint8_t top_inset = data->config.top_lip ? GRAPH_TOP_LIP_VALUE_INSET : 0;
 
   // Compute min/max — either fixed by config or derived from the data
   int16_t mn, mx;
@@ -135,10 +142,10 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
         if (data->values[i - 1] < 0 || data->values[i] < 0) continue;
         GPoint a = GPoint(
           prv_index_to_x(prv_arr_to_disp(i - 1, count), count, plot),
-          prv_value_to_y(data->values[i - 1], mn, mx, plot));
+          prv_value_to_y(data->values[i - 1], mn, mx, plot, top_inset));
         GPoint b = GPoint(
           prv_index_to_x(prv_arr_to_disp(i, count), count, plot),
-          prv_value_to_y(data->values[i], mn, mx, plot));
+          prv_value_to_y(data->values[i], mn, mx, plot, top_inset));
         graphics_draw_line(ctx, a, b);
       }
       break;
@@ -157,7 +164,7 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
         int16_t bx = x_right - (int16_t)i * step;
         if (bx < plot.origin.x) break; // off the left edge — stop
         if (data->values[i] < 0) continue;
-        int16_t by = prv_value_to_y(data->values[i], mn, mx, plot);
+        int16_t by = prv_value_to_y(data->values[i], mn, mx, plot, top_inset);
         graphics_draw_line(ctx, GPoint(bx, y_bot), GPoint(bx, by));
       }
       graphics_context_set_stroke_width(ctx, 1);
@@ -172,9 +179,9 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
 
         // ax/ay = older sample (left endpoint), bx/by = newer sample (right endpoint)
         int16_t ax = prv_index_to_x(prv_arr_to_disp(i,     count), count, plot);
-        int16_t ay = prv_value_to_y(data->values[i],     mn, mx, plot);
+        int16_t ay = prv_value_to_y(data->values[i],     mn, mx, plot, top_inset);
         int16_t bx = prv_index_to_x(prv_arr_to_disp(i - 1, count), count, plot);
-        int16_t by = prv_value_to_y(data->values[i - 1], mn, mx, plot);
+        int16_t by = prv_value_to_y(data->values[i - 1], mn, mx, plot, top_inset);
 
         for (int16_t x = ax; x <= bx; x++) {
           int16_t ceil_y = (bx > ax)
