@@ -1,11 +1,12 @@
 var Clay = require('@rebble/clay');
 var clayConfig = require('./config');
+var clayCustom = require('./clay-custom');
 var geo = require('./geo');
 var solar = require('./solar');
 var lunar = require('./lunar');
 var weather = require('./weather/open_meteo');
 
-new Clay(clayConfig);
+var clay = new Clay(clayConfig, clayCustom);
 
 function fetchSolarLunar() {
   geo.getPosition(function(err, pos) {
