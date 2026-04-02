@@ -20,6 +20,9 @@ typedef struct {
 
   // Used by MINIVIEW_MODE_ICON_COLUMN: top, middle, bottom icon resource IDs
   uint32_t column_icon_resource_ids[3];
+
+  /** Moon phase miniview: always black inner face, moon bitmap drawn with GCompOpAssign. */
+  bool moon_phase;
 } MiniviewConfig;
 
 Layer *miniview_create(MiniviewConfig config);

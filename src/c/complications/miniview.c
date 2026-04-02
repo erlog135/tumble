@@ -124,6 +124,9 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   graphics_context_set_antialiased(ctx, false);
   bool sun_clock = (data->config.mode == MINIVIEW_MODE_CLOCK_DOTS);
   bool white_face = sun_clock || !settings_get()->black_miniview_bg;
+  if (data->config.moon_phase) {
+    white_face = false;
+  }
   prv_draw_background(ctx, center, radius, white_face);
   prv_draw_border_decoration(ctx, center, radius, inner_radius);
 
@@ -157,7 +160,8 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
 
     case MINIVIEW_MODE_ICON_CENTER:
       if (data->icon_bitmap) {
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center, prv_miniview_icon_op());
+        GCompOp icon_op = data->config.moon_phase ? GCompOpAssign : prv_miniview_icon_op();
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap, center, icon_op);
       }
       break;
 

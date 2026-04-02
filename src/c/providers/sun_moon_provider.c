@@ -74,6 +74,7 @@ void sun_moon_provider_activate(ComplicationSlot slot, uint8_t option) {
                     layer = miniview_create((MiniviewConfig) {
                         .mode = MINIVIEW_MODE_ICON_CENTER,
                         .icon_resource_id = 0,
+                        .moon_phase = true,
                     });
                     break;
                 default:
