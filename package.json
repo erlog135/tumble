@@ -221,6 +221,18 @@
         },
         {
           "type": "bitmap",
+          "name": "ICON_BATTERY_CHARGING",
+          "file": "icons/BatteryCharging.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_CHARGING_FULL",
+          "file": "icons/BatteryChargingFull.png",
+          "memoryFormat": "1Bit"
+        },
+        {
+          "type": "bitmap",
           "name": "ICON_QUIET_TIME_ENABLED",
           "file": "icons/QuietTime_Enabled.png",
           "memoryFormat": "1Bit"

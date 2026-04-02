@@ -24,14 +24,15 @@
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
   #define SMALL_FONT_HEIGHT  28
   #define MEDIUM_FONT_HEIGHT 36
+  #define SMALL_FONT_BOTTOM_MARGIN 4
 #else
   #define SMALL_FONT_HEIGHT  22
   #define MEDIUM_FONT_HEIGHT 24
+  #define SMALL_FONT_BOTTOM_MARGIN 3
 #endif
 
 #define SECONDS_LAYER_WIDTH 16
 
-#define SMALL_FONT_BOTTOM_MARGIN 4
 
 // Bebas Neue's built-in gap from the top of the cell to the cap height.
 // Used to vertically center the miniview text stack within the inner circle.

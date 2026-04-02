@@ -18,6 +18,19 @@ static uint32_t prv_battery_icon(int percent) {
   return RESOURCE_ID_ICON_BATTERY_100;
 }
 
+/** Uses BatteryChargeState: charging icons while is_charging; full + plugged uses full icon. */
+static uint32_t prv_battery_icon_from_state(BatteryChargeState state) {
+  if (state.is_charging) {
+    return (state.charge_percent >= 100)
+      ? RESOURCE_ID_ICON_BATTERY_CHARGING_FULL
+      : RESOURCE_ID_ICON_BATTERY_CHARGING;
+  }
+  if (state.is_plugged && state.charge_percent >= 100) {
+    return RESOURCE_ID_ICON_BATTERY_CHARGING_FULL;
+  }
+  return prv_battery_icon(state.charge_percent);
+}
+
 typedef struct {
   bool active;
   uint8_t option;
@@ -48,7 +61,7 @@ static void prv_update_graph(Layer *layer) {
   graph_set_values(layer, s_history.points, s_history.count);
 
   BatteryChargeState state = battery_state_service_peek();
-  graph_set_icon(layer, prv_battery_icon(state.charge_percent));
+  graph_set_icon(layer, prv_battery_icon_from_state(state));
   char buf[8];
   snprintf(buf, sizeof(buf), "%d%%", state.charge_percent);
   graph_set_label_text(layer, buf);
@@ -83,7 +96,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
         .fixed_min = 0,
         .fixed_max = 100,
         .label_font = font_small,
-        .icon_resource_id = prv_battery_icon(state.charge_percent),
+        .icon_resource_id = prv_battery_icon_from_state(state),
       });
       prv_update_graph(layer);
       break;
@@ -93,7 +106,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
       if (option == MINIVIEW_OPTION_BATTERY) {
         layer = miniview_create((MiniviewConfig) {
           .mode = MINIVIEW_MODE_ICON_CENTER,
-          .icon_resource_id = prv_battery_icon(state.charge_percent),
+          .icon_resource_id = prv_battery_icon_from_state(state),
         });
       } else {
         bool qt = quiet_time_is_active();
@@ -102,7 +115,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
           .mode = MINIVIEW_MODE_ICON_COLUMN,
           .column_icon_resource_ids = {
             qt ? RESOURCE_ID_ICON_QUIET_TIME_ENABLED : RESOURCE_ID_ICON_QUIET_TIME_DISABLED,
-            prv_battery_icon(state.charge_percent),
+            prv_battery_icon_from_state(state),
             bt ? RESOURCE_ID_ICON_PHONE_CONNECTED : RESOURCE_ID_ICON_PHONE_DISCONNECTED,
           },
         });
@@ -126,7 +139,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
         .mode = BOTTOM_MODE_ICON_ONLY,
         .align = align,
         .font = font_small,
-        .icon_resource_id = prv_battery_icon(bstate.charge_percent),
+        .icon_resource_id = prv_battery_icon_from_state(bstate),
       });
       break;
     }
@@ -183,13 +196,13 @@ void battery_provider_tick(struct tm *tick_time) {
         break;
       case COMPLICATION_MINIVIEW: {
         if (s_slots[i].option == MINIVIEW_OPTION_BATTERY) {
-          miniview_set_icon_resource_id(layer, prv_battery_icon(state.charge_percent));
+          miniview_set_icon_resource_id(layer, prv_battery_icon_from_state(state));
         } else if (s_slots[i].option == MINIVIEW_OPTION_BATTERY_DND) {
           bool qt = quiet_time_is_active();
           bool bt = connection_service_peek_pebble_app_connection();
           miniview_set_column_icon(layer, 0,
             qt ? RESOURCE_ID_ICON_QUIET_TIME_ENABLED : RESOURCE_ID_ICON_QUIET_TIME_DISABLED);
-          miniview_set_column_icon(layer, 1, prv_battery_icon(state.charge_percent));
+          miniview_set_column_icon(layer, 1, prv_battery_icon_from_state(state));
           miniview_set_column_icon(layer, 2,
             bt ? RESOURCE_ID_ICON_PHONE_CONNECTED : RESOURCE_ID_ICON_PHONE_DISCONNECTED);
         }
@@ -197,7 +210,7 @@ void battery_provider_tick(struct tm *tick_time) {
       }
       case COMPLICATION_BOTTOM_LEFT:
       case COMPLICATION_BOTTOM_RIGHT:
-        bottom_complication_set_icon(layer, prv_battery_icon(state.charge_percent));
+        bottom_complication_set_icon(layer, prv_battery_icon_from_state(state));
         break;
       default:
         break;

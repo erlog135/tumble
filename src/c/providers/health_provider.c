@@ -6,11 +6,19 @@
 #include "../settings.h"
 #include <string.h>
 
+typedef struct {
+  bool active;
+  uint8_t option;
+} SlotState;
+
+static SlotState s_slots[COMPLICATION_COUNT];
+
 #if defined(PBL_HEALTH)
-// Steps (per hour): 0–1270 → 0–127  (1 unit = 10 steps)
+// Steps (per hour): 0–3000 → 0–127 for GraphConfig (fixed_range 0–127).
 static int8_t prv_scale_steps(int steps) {
   if (steps <= 0) return HISTORY_INVALID;
-  return (int8_t)(steps > 1270 ? 127 : steps / 10);
+  if (steps > 3000) steps = 3000;
+  return (int8_t)((steps * 127) / 3000);
 }
 
 // HR graph: 0–200 bpm → 0–127 for GraphConfig (fixed_range 0–127 ≡ 0–200 bpm).
@@ -20,19 +28,116 @@ static int8_t prv_scale_hr_graph(int bpm) {
   return (int8_t)((bpm * 127) / 200);
 }
 
-static void prv_build_steps_history(int8_t *out, uint8_t *out_count) {
-  time_t now = time(NULL);
-  for (int i = 0; i < HISTORY_24H_LEN; i++) {
-    time_t end   = now - (time_t)(i * 3600);
-    time_t start = end - 3600;
-    HealthValue v = health_service_sum(HealthMetricStepCount, start, end);
-    out[i] = prv_scale_steps((int)v);
+// Steps graph: local clock hours, filled from sum_today deltas while any steps widget is
+// active (same idea as peek-based HR). Not read from minute history.
+typedef struct {
+  int8_t    points[HISTORY_24H_LEN];
+  time_t    hour_start_epoch;
+  HealthValue baseline;
+  uint8_t   hist_ready;
+} StepsGraphHistory;
+
+static StepsGraphHistory s_steps_graph;
+
+static time_t prv_local_hour_start(time_t now) {
+  struct tm *lt_ptr = localtime(&now);
+  if (!lt_ptr) {
+    return now - (now % 3600);
   }
-  *out_count = HISTORY_24H_LEN;
+  struct tm lt = *lt_ptr;
+  lt.tm_min = 0;
+  lt.tm_sec = 0;
+  return mktime(&lt);
+}
+
+static void prv_steps_graph_persist(void) {
+  persist_write_data(PERSIST_KEY_STEPS_HISTORY, &s_steps_graph, sizeof(s_steps_graph));
+}
+
+// Called once per tick when any complication shows steps — keeps graph in sync without
+// health_service_get_minute_history.
+static void prv_steps_graph_history_update(void) {
+  time_t now = time(NULL);
+  time_t hs_now = prv_local_hour_start(now);
+  HealthValue now_total = health_service_sum_today(HealthMetricStepCount);
+
+  if (!s_steps_graph.hist_ready) {
+    memset(s_steps_graph.points, HISTORY_INVALID, sizeof(s_steps_graph.points));
+    s_steps_graph.hour_start_epoch = hs_now;
+    s_steps_graph.baseline = now_total;
+    s_steps_graph.hist_ready = 1;
+  } else if (hs_now < s_steps_graph.hour_start_epoch) {
+    memset(s_steps_graph.points, HISTORY_INVALID, sizeof(s_steps_graph.points));
+    s_steps_graph.hour_start_epoch = hs_now;
+    s_steps_graph.baseline = now_total;
+  } else {
+    time_t diff = hs_now - s_steps_graph.hour_start_epoch;
+    int dh = (int)(diff / 3600);
+    if (dh > 0) {
+      if (dh >= HISTORY_24H_LEN) {
+        memset(s_steps_graph.points, HISTORY_INVALID, sizeof(s_steps_graph.points));
+      } else {
+        for (int k = 0; k < dh; k++) {
+          memmove(&s_steps_graph.points[1], &s_steps_graph.points[0],
+                  (HISTORY_24H_LEN - 1) * sizeof(int8_t));
+          s_steps_graph.points[0] = HISTORY_INVALID;
+        }
+      }
+      s_steps_graph.hour_start_epoch = hs_now;
+      s_steps_graph.baseline = now_total;
+    }
+  }
+
+  int cur = (int)now_total - (int)s_steps_graph.baseline;
+  if (cur < 0) {
+    cur = 0;
+  }
+  s_steps_graph.points[0] = prv_scale_steps(cur);
+  prv_steps_graph_persist();
+}
+
+static bool prv_any_steps_slot_active(void) {
+  for (int i = 0; i < COMPLICATION_COUNT; i++) {
+    if (!s_slots[i].active) {
+      continue;
+    }
+    uint8_t o = s_slots[i].option;
+    if (i == COMPLICATION_GRAPH && o == GRAPH_OPTION_STEPS) {
+      return true;
+    }
+    if (i == COMPLICATION_MINIVIEW && o == MINIVIEW_OPTION_STEPS) {
+      return true;
+    }
+    if ((i == COMPLICATION_BOTTOM_LEFT || i == COMPLICATION_BOTTOM_RIGHT)
+        && o == BOTTOM_OPTION_STEPS) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool prv_any_hr_slot_active(void) {
+  for (int i = 0; i < COMPLICATION_COUNT; i++) {
+    if (!s_slots[i].active) {
+      continue;
+    }
+    uint8_t o = s_slots[i].option;
+    if (i == COMPLICATION_GRAPH && o == GRAPH_OPTION_HEART_RATE) {
+      return true;
+    }
+    if (i == COMPLICATION_MINIVIEW && o == MINIVIEW_OPTION_HEART_RATE) {
+      return true;
+    }
+    if ((i == COMPLICATION_BOTTOM_LEFT || i == COMPLICATION_BOTTOM_RIGHT)
+        && o == BOTTOM_OPTION_HEART_RATE) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // Peek-based HR graph: one value per 10-minute bucket (4h window). Persisted like
-// battery history; only updated while the graph shows heart rate (prv_update_graph).
+// battery history; updated while any complication shows heart rate.
 typedef struct {
   int8_t   points[HISTORY_4H_LEN];
   uint32_t bucket_epoch;
@@ -116,12 +221,6 @@ static uint32_t prv_icon_for_bottom_option(uint8_t option) {
   }
 }
 
-typedef struct {
-  bool active;
-  uint8_t option;
-} SlotState;
-
-static SlotState s_slots[COMPLICATION_COUNT];
 #if defined(PBL_HEALTH)
 static bool s_subscribed;
 #endif
@@ -138,11 +237,11 @@ static void prv_update_graph(Layer *layer, uint8_t option) {
   uint8_t count = 0;
 #if defined(PBL_HEALTH)
   if (option == GRAPH_OPTION_HEART_RATE) {
-    prv_hr_graph_history_update_from_peek();
     memcpy(vals, s_hr_graph.points, sizeof(s_hr_graph.points));
     count = HISTORY_4H_LEN;
   } else {
-    prv_build_steps_history(vals, &count);
+    memcpy(vals, s_steps_graph.points, sizeof(s_steps_graph.points));
+    count = HISTORY_24H_LEN;
   }
 #endif
   graph_set_values(layer, vals, count);
@@ -169,6 +268,9 @@ void health_provider_init(void) {
   memset(&s_hr_graph, 0, sizeof(s_hr_graph));
   memset(s_hr_graph.points, HISTORY_INVALID, sizeof(s_hr_graph.points));
   persist_read_data(PERSIST_KEY_HEALTH_HISTORY, &s_hr_graph, sizeof(s_hr_graph));
+  memset(&s_steps_graph, 0, sizeof(s_steps_graph));
+  memset(s_steps_graph.points, HISTORY_INVALID, sizeof(s_steps_graph.points));
+  persist_read_data(PERSIST_KEY_STEPS_HISTORY, &s_steps_graph, sizeof(s_steps_graph));
 #endif
 }
 
@@ -199,7 +301,8 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
         .h_markers = h_markers,
         .v_markers = 0,
         .top_lip = (option == GRAPH_OPTION_STEPS),
-        .fixed_range = (option == GRAPH_OPTION_HEART_RATE),
+        .fixed_range = (option == GRAPH_OPTION_STEPS
+                        || option == GRAPH_OPTION_HEART_RATE),
         .fixed_min = 0,
         .fixed_max = 127,
         .label_font = font_small,
@@ -245,6 +348,24 @@ void health_provider_activate(ComplicationSlot slot, uint8_t option) {
     layer_add_child(window_layer, layer);
     providers_set_layer(slot, layer);
   }
+
+#if defined(PBL_HEALTH)
+  if (prv_any_steps_slot_active()) {
+    prv_steps_graph_history_update();
+  }
+  if (prv_any_hr_slot_active()) {
+    prv_hr_graph_history_update_from_peek();
+  }
+  Layer *graph_layer = providers_get_layer(COMPLICATION_GRAPH);
+  if (graph_layer && s_slots[COMPLICATION_GRAPH].active) {
+    uint8_t go = s_slots[COMPLICATION_GRAPH].option;
+    if (go == GRAPH_OPTION_STEPS && prv_any_steps_slot_active()) {
+      prv_update_graph(graph_layer, go);
+    } else if (go == GRAPH_OPTION_HEART_RATE && prv_any_hr_slot_active()) {
+      prv_update_graph(graph_layer, go);
+    }
+  }
+#endif
 }
 
 void health_provider_deactivate(ComplicationSlot slot) {
@@ -286,7 +407,7 @@ static void prv_update_miniview(Layer *layer, uint8_t option) {
       break;
     }
     case MINIVIEW_OPTION_CALORIES: {
-      HealthValue cal = health_service_sum_today(HealthMetricActiveKCalories);
+      HealthValue cal = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
       if (cal > 0) snprintf(buf, sizeof(buf), "%d", (int)cal);
       break;
     }
@@ -319,7 +440,7 @@ static void prv_update_bottom(Layer *layer, uint8_t option) {
       break;
     }
     case BOTTOM_OPTION_CALORIES: {
-      HealthValue cal = health_service_sum_today(HealthMetricActiveKCalories);
+      HealthValue cal = health_service_sum_today(HealthMetricRestingKCalories) + health_service_sum_today(HealthMetricActiveKCalories);
       if (cal > 0) snprintf(buf, sizeof(buf), "%d", (int)cal);
       break;
     }
@@ -335,6 +456,15 @@ static void prv_update_bottom(Layer *layer, uint8_t option) {
 
 void health_provider_tick(struct tm *tick_time) {
   (void)tick_time;
+
+#if defined(PBL_HEALTH)
+  if (prv_any_steps_slot_active()) {
+    prv_steps_graph_history_update();
+  }
+  if (prv_any_hr_slot_active()) {
+    prv_hr_graph_history_update_from_peek();
+  }
+#endif
 
   for (int i = 0; i < COMPLICATION_COUNT; i++) {
     if (!s_slots[i].active) continue;
