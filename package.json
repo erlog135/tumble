@@ -31,6 +31,8 @@
       "health"
     ],
     "messageKeys": [
+      "JS_READY",
+      "REQUEST_DATA",
       "CFG_BLACK_BG",
       "CFG_BLACK_MINIVIEW_BG",
       "CFG_UNIT_TEMP",

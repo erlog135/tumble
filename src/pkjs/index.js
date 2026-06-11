@@ -29,15 +29,14 @@ function fetchWeather() {
   });
 }
 
+Pebble.addEventListener('appmessage', function(e) {
+  if (e.payload.REQUEST_DATA !== undefined) {
+    fetchWeather();
+    fetchSolarLunar();
+  }
+});
+
 Pebble.addEventListener('ready', function() {
   console.log('PebbleKit JS ready');
-
-  fetchSolarLunar();
-  fetchWeather();
-
-  var settings = JSON.parse(localStorage.getItem('clay-settings')) || {};
-  var weatherIntervalMs = (parseInt(settings['CFG_WEATHER_REFRESH_INTERVAL'], 10) || 30) * 60 * 1000;
-
-  setInterval(fetchWeather,     weatherIntervalMs);
-  setInterval(fetchSolarLunar,  12 * 60 * 60 * 1000);
+  Pebble.sendAppMessage({ 'JS_READY': 1 });
 });

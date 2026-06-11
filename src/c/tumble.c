@@ -8,6 +8,13 @@ static Window *s_main_window;
 static Layer *s_time_display_layer;
 static Layer *s_miniview_corner_layer;
 static AppTimer *s_shake_timer = NULL;
+static AppTimer *s_data_refresh_timer = NULL;
+static AppTimer *s_request_timeout_timer = NULL;
+static bool s_js_ready = false;
+
+#define REQUEST_TIMEOUT_MS 1000
+#define REQUEST_RETRY_MS 500
+
 #if DRAW_DEBUG_RECTANGLES
 static Layer *s_debug_layer;
 #endif
@@ -215,6 +222,83 @@ static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
 }
 #endif
 
+static uint32_t prv_data_refresh_interval_ms(void) {
+    ClaySettings *cfg = settings_get();
+    uint8_t interval = cfg->weather_refresh_interval;
+    if (interval == 0) {
+        interval = 30;
+    }
+    return (uint32_t)interval * 60 * 1000;
+}
+
+static void prv_cancel_request_timeout(void) {
+    if (s_request_timeout_timer) {
+        app_timer_cancel(s_request_timeout_timer);
+        s_request_timeout_timer = NULL;
+    }
+}
+
+static void prv_send_data_request(void);
+
+static void prv_request_timeout_handler(void *context) {
+    (void)context;
+    s_request_timeout_timer = NULL;
+    prv_send_data_request();
+}
+
+static void prv_send_data_request(void) {
+    if (!s_js_ready) {
+        return;
+    }
+
+    prv_cancel_request_timeout();
+
+    DictionaryIterator *iter;
+    AppMessageResult result = app_message_outbox_begin(&iter);
+    if (result != APP_MSG_OK) {
+        s_request_timeout_timer = app_timer_register(REQUEST_RETRY_MS, prv_request_timeout_handler, NULL);
+        return;
+    }
+
+    int32_t value = 1;
+    dict_write_int(iter, MESSAGE_KEY_REQUEST_DATA, &value, sizeof(value), true);
+    result = app_message_outbox_send();
+    if (result != APP_MSG_OK) {
+        s_request_timeout_timer = app_timer_register(REQUEST_RETRY_MS, prv_request_timeout_handler, NULL);
+        return;
+    }
+
+    s_request_timeout_timer = app_timer_register(REQUEST_TIMEOUT_MS, prv_request_timeout_handler, NULL);
+}
+
+static void prv_stop_data_refresh_timer(void) {
+    if (s_data_refresh_timer) {
+        app_timer_cancel(s_data_refresh_timer);
+        s_data_refresh_timer = NULL;
+    }
+}
+
+static void prv_data_refresh_timer_callback(void *context) {
+    (void)context;
+    s_data_refresh_timer = NULL;
+    prv_send_data_request();
+    s_data_refresh_timer = app_timer_register(
+        prv_data_refresh_interval_ms(), prv_data_refresh_timer_callback, NULL);
+}
+
+static void prv_start_data_refresh_timer(void) {
+    prv_stop_data_refresh_timer();
+    s_data_refresh_timer = app_timer_register(
+        prv_data_refresh_interval_ms(), prv_data_refresh_timer_callback, NULL);
+}
+
+static void prv_reschedule_data_refresh_timer(void) {
+    if (!s_js_ready) {
+        return;
+    }
+    prv_start_data_refresh_timer();
+}
+
 static int32_t prv_tuple_int(Tuple *t) {
     if (!t) return 0;
     if (t->type == TUPLE_CSTRING) {
@@ -233,6 +317,14 @@ static int32_t prv_tuple_int(Tuple *t) {
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     (void)context;
+
+    Tuple *ready_t = dict_find(iter, MESSAGE_KEY_JS_READY);
+    if (ready_t) {
+        s_js_ready = true;
+        prv_send_data_request();
+        prv_start_data_refresh_timer();
+        return;
+    }
 
     Tuple *cfg_t = dict_find(iter, MESSAGE_KEY_CFG_BLACK_BG);
     if (cfg_t) {
@@ -282,6 +374,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
         }
         update_tick_subscription();
         prv_apply_unobstructed_layout();
+        prv_reschedule_data_refresh_timer();
         return;
     }
 
@@ -305,6 +398,20 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 static void inbox_dropped_handler(AppMessageResult reason, void *context) {
     (void)context;
     APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped: %d", reason);
+}
+
+static void outbox_sent_handler(DictionaryIterator *iter, void *context) {
+    (void)iter;
+    (void)context;
+    prv_cancel_request_timeout();
+}
+
+static void outbox_failed_handler(DictionaryIterator *iter, AppMessageResult reason, void *context) {
+    (void)iter;
+    (void)reason;
+    (void)context;
+    prv_cancel_request_timeout();
+    app_timer_register(REQUEST_RETRY_MS, prv_request_timeout_handler, NULL);
 }
 
 static void main_window_load(Window *window) {
@@ -399,6 +506,8 @@ static void init(void) {
 
     app_message_register_inbox_received(inbox_received_handler);
     app_message_register_inbox_dropped(inbox_dropped_handler);
+    app_message_register_outbox_sent(outbox_sent_handler);
+    app_message_register_outbox_failed(outbox_failed_handler);
     app_message_open(
         240, 240);
 }
@@ -410,6 +519,8 @@ static void deinit(void) {
         app_timer_cancel(s_shake_timer);
         s_shake_timer = NULL;
     }
+    prv_stop_data_refresh_timer();
+    prv_cancel_request_timeout();
     window_destroy(s_main_window);
 }
 
