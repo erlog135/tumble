@@ -15,7 +15,7 @@ static void prv_default_settings(void) {
     settings.tz_offset_minutes = 0;
     settings.miniview_option = MINIVIEW_OPTION_DATE_DOW_DATE;
     settings.graph_option = GRAPH_OPTION_TEMPERATURE;
-    settings.seconds_option = SECONDS_OPTION_ALWAYS_ON;
+    settings.seconds_option = SECONDS_OPTION_ALWAYS_OFF;
     settings.bottom_left_option = BOTTOM_OPTION_SUNRISE_SUNSET;
     settings.bottom_right_option = BOTTOM_OPTION_BATTERY;
 }

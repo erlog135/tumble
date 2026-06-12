@@ -3,6 +3,7 @@
 #include "settings.h"
 #include "time_display.h"
 #include "providers/providers.h"
+#include "demo.h"
 
 static Window *s_main_window;
 static Layer *s_time_display_layer;
@@ -440,6 +441,9 @@ static void main_window_load(Window *window) {
 
     providers_init(window_layer, &s_layout, s_font_small, s_font_medium);
     providers_apply_settings();
+#if defined(DEMO_MODE)
+    demo_inject_data();
+#endif
 
     s_miniview_corner_layer = layer_create(bounds);
     layer_set_update_proc(s_miniview_corner_layer, prv_miniview_corner_update_proc);
@@ -462,6 +466,11 @@ static void main_window_load(Window *window) {
     prv_apply_unobstructed_layout();
 #else
     update_time();
+#endif
+
+    /* Freeze time last, after update_time() on all platforms. */
+#if defined(DEMO_MODE)
+    demo_freeze_time(s_time_display_layer);
 #endif
 }
 
@@ -488,6 +497,9 @@ static void main_window_unload(Window *window) {
 
 static void init(void) {
     settings_load();
+#if defined(DEMO_MODE)
+    demo_apply_settings();
+#endif
 
     s_main_window = window_create();
 
@@ -502,14 +514,17 @@ static void init(void) {
 
     window_stack_push(s_main_window, true);
 
+#if !defined(DEMO_MODE)
     update_tick_subscription();
+#endif
 
+#if !defined(DEMO_MODE)
     app_message_register_inbox_received(inbox_received_handler);
     app_message_register_inbox_dropped(inbox_dropped_handler);
     app_message_register_outbox_sent(outbox_sent_handler);
     app_message_register_outbox_failed(outbox_failed_handler);
-    app_message_open(
-        240, 240);
+    app_message_open(240, 240);
+#endif
 }
 
 static void deinit(void) {
