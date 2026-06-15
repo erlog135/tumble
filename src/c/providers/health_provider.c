@@ -17,8 +17,8 @@ static SlotState s_slots[COMPLICATION_COUNT];
 // Steps (per hour): 0–3000 → 0–127 for GraphConfig (fixed_range 0–127).
 static int8_t prv_scale_steps(int steps) {
   if (steps <= 0) return HISTORY_INVALID;
-  if (steps > 3000) steps = 3000;
-  return (int8_t)((steps * 127) / 3000);
+  if (steps > 1000) steps = 1000;
+  return (int8_t)((steps * 127) / 1000);
 }
 
 // HR graph: 0–200 bpm → 0–127 for GraphConfig (fixed_range 0–127 ≡ 0–200 bpm).

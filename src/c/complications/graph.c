@@ -81,7 +81,7 @@ static void prv_draw_axes(GContext *ctx, GraphData *data, GColor fg) {
   int16_t y_bot = plot.origin.y + plot.size.h - 1;
 
   graphics_context_set_stroke_color(ctx, fg);
-  graphics_context_set_stroke_width(ctx, 1);
+  graphics_context_set_stroke_width(ctx, GRAPH_LINE_WIDTH);
 
   graphics_draw_line(ctx, GPoint(x1, y_top), GPoint(x1, y_bot));
   graphics_draw_line(ctx, GPoint(x2, y_top), GPoint(x2, y_bot));
@@ -131,7 +131,7 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
   }
 
   graphics_context_set_stroke_color(ctx, fg);
-  graphics_context_set_stroke_width(ctx, 1);
+  graphics_context_set_stroke_width(ctx, GRAPH_LINE_WIDTH);
 
   switch (data->config.style) {
 
@@ -155,10 +155,10 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
       // Bars are anchored to the right edge (newest data) and spaced at fixed
       // intervals leftward. Capturing all data is lowest priority — bars that
       // fall outside the left edge are simply skipped.
-      int16_t step = (int16_t)(GRAPH_BAR_WIDTH + GRAPH_BAR_SPACING);
+      int16_t step = (int16_t)(GRAPH_LINE_WIDTH + GRAPH_BAR_SPACING);
       int16_t x_right = plot.origin.x + plot.size.w - 1;
 
-      graphics_context_set_stroke_width(ctx, GRAPH_BAR_WIDTH);
+      graphics_context_set_stroke_width(ctx, GRAPH_LINE_WIDTH);
       for (uint8_t i = 0; i < count; i++) {
         // i == 0 is newest; place it at the right, older bars extend left
         int16_t bx = x_right - (int16_t)i * step;
@@ -167,7 +167,7 @@ static void prv_draw_data(GContext *ctx, GraphData *data, GColor fg) {
         int16_t by = prv_value_to_y(data->values[i], mn, mx, plot, top_inset);
         graphics_draw_line(ctx, GPoint(bx, y_bot), GPoint(bx, by));
       }
-      graphics_context_set_stroke_width(ctx, 1);
+      graphics_context_set_stroke_width(ctx, GRAPH_LINE_WIDTH);
       break;
     }
 
@@ -253,6 +253,9 @@ void graph_set_label_text(Layer *layer, const char *text) {
   if (text) {
     strncpy(data->label_buffer, text, GRAPH_LABEL_MAX - 1);
     data->label_buffer[GRAPH_LABEL_MAX - 1] = '\0';
+    for (char *p = data->label_buffer; *p; p++) {
+      if (*p >= 'a' && *p <= 'z') *p -= 32;
+    }
   } else {
     data->label_buffer[0] = '\0';
   }

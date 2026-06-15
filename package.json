@@ -1,5 +1,5 @@
 {
-  "name": "Tumble",
+  "name": "tumble",
   "author": "Logan Head",
   "version": "1.0.0",
   "keywords": [
@@ -66,20 +66,19 @@
           "type": "font",
           "name": "BEBAS_NEUE_36",
           "file": "fonts/BebasNeue-Regular.ttf",
-          "characterRegex": "^[A-Z0-9.: °-]"
-     
+          "characterRegex": "^[A-Z0-9.: °%-]"
         },
         {
           "type": "font",
           "name": "BEBAS_NEUE_28",
           "file": "fonts/BebasNeue-Regular.ttf",
-          "characterRegex": "^[A-Z0-9.: °-]"
+          "characterRegex": "^[A-Z0-9.: °%-]"
         },
         {
           "type": "font",
           "name": "BEBAS_NEUE_20",
           "file": "fonts/BebasNeue-Regular.ttf",
-          "characterRegex": "^[A-Z0-9.: °-]"
+          "characterRegex": "^[A-Z0-9.: °%-]"
         },
         {
           "type": "font",
@@ -109,282 +108,968 @@
           "type": "bitmap",
           "name": "ICON_GLOBE",
           "file": "icons/Globe.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_GLOBE",
+          "file": "icons/Globe_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_STEPS",
           "file": "icons/Steps.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_STEPS",
+          "file": "icons/Steps_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_CALORIES",
           "file": "icons/Calories.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_CALORIES",
+          "file": "icons/Calories_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_HEART_RATE",
           "file": "icons/HeartRate.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_HEART_RATE",
+          "file": "icons/HeartRate_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_ALTITUDE",
           "file": "icons/Altitude.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_ALTITUDE",
+          "file": "icons/Altitude_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE",
           "file": "icons/Pressure.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE",
+          "file": "icons/Pressure_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_DD",
           "file": "icons/PressureTrend_DD.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_DD",
+          "file": "icons/PressureTrend_DD_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_DS",
           "file": "icons/PressureTrend_DS.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_DS",
+          "file": "icons/PressureTrend_DS_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_SD",
           "file": "icons/PressureTrend_SD.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SD",
+          "file": "icons/PressureTrend_SD_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_SS",
           "file": "icons/PressureTrend_SS.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SS",
+          "file": "icons/PressureTrend_SS_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_SU",
           "file": "icons/PressureTrend_SU.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_SU",
+          "file": "icons/PressureTrend_SU_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_US",
           "file": "icons/PressureTrend_US.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_US",
+          "file": "icons/PressureTrend_US_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PRESSURE_TREND_UU",
           "file": "icons/PressureTrend_UU.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PRESSURE_TREND_UU",
+          "file": "icons/PressureTrend_UU_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "PRESSURE_TREND_SAMPLING",
           "file": "icons/PressureTrend_Sampling.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "PRESSURE_TREND_SAMPLING",
+          "file": "icons/PressureTrend_Sampling_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_0",
           "file": "icons/Battery0.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_0",
+          "file": "icons/Battery0_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_20",
           "file": "icons/Battery20.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_20",
+          "file": "icons/Battery20_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_40",
           "file": "icons/Battery40.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_40",
+          "file": "icons/Battery40_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_60",
           "file": "icons/Battery60.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_60",
+          "file": "icons/Battery60_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_80",
           "file": "icons/Battery80.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_80",
+          "file": "icons/Battery80_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_100",
           "file": "icons/Battery100.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_100",
+          "file": "icons/Battery100_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_CHARGING",
           "file": "icons/BatteryCharging.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_CHARGING",
+          "file": "icons/BatteryCharging_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_BATTERY_CHARGING_FULL",
           "file": "icons/BatteryChargingFull.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_BATTERY_CHARGING_FULL",
+          "file": "icons/BatteryChargingFull_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_QUIET_TIME_ENABLED",
           "file": "icons/QuietTime_Enabled.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_QUIET_TIME_ENABLED",
+          "file": "icons/QuietTime_Enabled_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_QUIET_TIME_DISABLED",
           "file": "icons/QuietTime_Disabled.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_QUIET_TIME_DISABLED",
+          "file": "icons/QuietTime_Disabled_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PHONE_CONNECTED",
           "file": "icons/Phone_Connected.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PHONE_CONNECTED",
+          "file": "icons/Phone_Connected_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_PHONE_DISCONNECTED",
           "file": "icons/Phone_Disconnected.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_PHONE_DISCONNECTED",
+          "file": "icons/Phone_Disconnected_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_SUN",
-          "file": "icons/Sun.png"
+          "file": "icons/Sun.png",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUN",
+          "file": "icons/Sun_lg.png",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_SUNRISE",
           "file": "icons/Sunrise.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUNRISE",
+          "file": "icons/Sunrise_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_SUNSET",
           "file": "icons/Sunset.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_SUNSET",
+          "file": "icons/Sunset_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_NEW",
-          "file": "icons/moon/New.png"
+          "file": "icons/moon/New.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_WAXING_CRESCENT",
-          "file": "icons/moon/WaxingCrescent.png"
+          "file": "icons/moon/WaxingCrescent.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_FIRST_QUARTER",
-          "file": "icons/moon/FirstQuarter.png"
+          "file": "icons/moon/FirstQuarter.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_WAXING_GIBBOUS",
-          "file": "icons/moon/WaxingGibbous.png"
+          "file": "icons/moon/WaxingGibbous.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_FULL",
-          "file": "icons/moon/Full.png"
+          "file": "icons/moon/Full.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_WANING_GIBBOUS",
-          "file": "icons/moon/WaningGibbous.png"
+          "file": "icons/moon/WaningGibbous.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_LAST_QUARTER",
-          "file": "icons/moon/LastQuarter.png"
+          "file": "icons/moon/LastQuarter.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_MOON_WANING_CRESCENT",
-          "file": "icons/moon/WaningCrescent.png"
+          "file": "icons/moon/WaningCrescent.png",
+          "memoryFormat": "1Bit"
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_UNKNOWN",
           "file": "icons/weather/Unknown.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_UNKNOWN",
+          "file": "icons/weather/Unknown_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_CLEAR",
           "file": "icons/weather/Clear.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLEAR",
+          "file": "icons/weather/Clear_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_CLEAR_NIGHT",
           "file": "icons/weather/ClearNight.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLEAR_NIGHT",
+          "file": "icons/weather/ClearNight_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_CLOUDY",
           "file": "icons/weather/Cloudy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_CLOUDY",
+          "file": "icons/weather/Cloudy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_FOGGY",
           "file": "icons/weather/Foggy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_FOGGY",
+          "file": "icons/weather/Foggy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_PARTLY_CLOUDY",
           "file": "icons/weather/PartlyCloudy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_PARTLY_CLOUDY",
+          "file": "icons/weather/PartlyCloudy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_PARTLY_CLOUDY_NIGHT",
           "file": "icons/weather/PartlyCloudyNight.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_PARTLY_CLOUDY_NIGHT",
+          "file": "icons/weather/PartlyCloudyNight_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_RAINY",
           "file": "icons/weather/Rainy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_RAINY",
+          "file": "icons/weather/Rainy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_SNOWY",
           "file": "icons/weather/Snowy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_SNOWY",
+          "file": "icons/weather/Snowy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_SNOWY_RAINY",
           "file": "icons/weather/SnowyRainy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_SNOWY_RAINY",
+          "file": "icons/weather/SnowyRainy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         },
         {
           "type": "bitmap",
           "name": "ICON_WEATHER_STORMY",
           "file": "icons/weather/Stormy.png",
-          "memoryFormat": "1Bit"
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite",
+            "flint"
+          ]
+        },
+        {
+          "type": "bitmap",
+          "name": "ICON_WEATHER_STORMY",
+          "file": "icons/weather/Stormy_lg.png",
+          "memoryFormat": "1Bit",
+          "targetPlatforms": [
+            "emery",
+            "gabbro"
+          ]
         }
-        
       ]
     }
   }

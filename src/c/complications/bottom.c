@@ -134,6 +134,9 @@ void bottom_complication_set_text(Layer *layer, const char *text) {
   BottomData *data = layer_get_data(layer);
   strncpy(data->text, text, BOTTOM_TEXT_MAX_LEN - 1);
   data->text[BOTTOM_TEXT_MAX_LEN - 1] = '\0';
+  for (char *p = data->text; *p; p++) {
+    if (*p >= 'a' && *p <= 'z') *p -= 32;
+  }
   layer_mark_dirty(layer);
 }
 

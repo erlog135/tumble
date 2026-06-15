@@ -31,7 +31,7 @@
  *   Pressure   1005 hPa
  */
 
-#define DEMO_MODE 2
+// #define DEMO_MODE 2
 
 #if defined(DEMO_MODE)
 

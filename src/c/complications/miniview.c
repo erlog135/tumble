@@ -28,12 +28,16 @@ typedef struct {
 #define DOT_RING_INSET 7
 #endif
 
-#define ICON_COLUMN_SPACING 15  // pixels between the middle icon and each outer icon
 
-/** @param white_face true: white inner fill; false: black inner fill. Border is always a black outline with white details (see prv_draw_border_decoration). */
-static void prv_draw_background(GContext *ctx, GPoint center, uint16_t radius, bool white_face) {
+
+
+/** @param white_face true: white inner fill; false: black inner fill. */
+static void prv_draw_background_fill(GContext *ctx, GPoint center, uint16_t radius, bool white_face) {
   graphics_context_set_fill_color(ctx, white_face ? GColorWhite : GColorBlack);
   graphics_fill_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE);
+}
+
+static void prv_draw_border_outline(GContext *ctx, GPoint center, uint16_t radius) {
   graphics_context_set_stroke_color(ctx, GColorBlack);
   graphics_context_set_stroke_width(ctx, MINIVIEW_BORDER_SIZE);
   graphics_draw_circle(ctx, center, radius - MINIVIEW_BORDER_SIZE / 2);
@@ -50,7 +54,7 @@ static void prv_draw_border_decoration(GContext *ctx, GPoint center,
   uint16_t dot_draw_len = dot_length - dot_m;
 
   graphics_context_set_stroke_color(ctx, GColorWhite);
-  graphics_context_set_stroke_width(ctx, 1);
+  graphics_context_set_stroke_width(ctx, MINIVIEW_DECORATION_WIDTH);
 
   GRect arc_rect = GRect(center.x - deco_radius, center.y - deco_radius,
       2 * deco_radius + 1, 2 * deco_radius + 1);
@@ -127,34 +131,76 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
   if (data->config.moon_phase) {
     white_face = false;
   }
-  prv_draw_background(ctx, center, radius, white_face);
-  prv_draw_border_decoration(ctx, center, radius, inner_radius);
+  prv_draw_background_fill(ctx, center, radius, white_face);
 
   switch (data->config.mode) {
-    case MINIVIEW_MODE_TEXT_STACK:
-      graphics_context_set_text_color(ctx, prv_miniview_text_color());
-      graphics_draw_text(ctx, data->small_text, data->small_font,
-        data->small_text_bounds,
-        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-      graphics_draw_text(ctx, data->medium_text,
-        prv_font_for_medium_line(data, data->medium_text),
-        data->medium_text_bounds,
-        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+    case MINIVIEW_MODE_TEXT_STACK: {
+      int16_t c1 = (data->small_text[0] != '\0') ? SMALL_FONT_CAP_HEIGHT : 0;
+      GFont text_font = prv_font_for_medium_line(data, data->medium_text);
+      int16_t c2 = (data->medium_text[0] != '\0') ? ((text_font == data->medium_font) ? MEDIUM_FONT_CAP_HEIGHT : SMALL_FONT_CAP_HEIGHT) : 0;
+
+      int16_t h1 = SMALL_FONT_HEIGHT;
+      int16_t h2 = (text_font == data->medium_font) ? MEDIUM_FONT_HEIGHT : SMALL_FONT_HEIGHT;
+
+      int16_t box_y1 = 0;
+      int16_t box_y2 = 0;
+
+      if (c1 > 0 && c2 > 0) {
+        int16_t total_h = c1 + c2 + MINIVIEW_ELEMENT_PADDING;
+        int16_t top_y = center.y - total_h / 2;
+        box_y1 = top_y + c1 - h1;
+        box_y2 = top_y + c1 + MINIVIEW_ELEMENT_PADDING + c2 - h2;
+      } else if (c1 > 0) {
+        box_y1 = center.y - h1 + c1 / 2;
+      } else if (c2 > 0) {
+        box_y2 = center.y - h2 + c2 / 2;
+      }
+
+      if (c1 > 0) {
+        graphics_context_set_text_color(ctx, prv_miniview_text_color());
+        graphics_draw_text(ctx, data->small_text, data->small_font,
+          GRect(0, box_y1, bounds.size.w, h1),
+          GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+      }
+      if (c2 > 0) {
+        graphics_context_set_text_color(ctx, prv_miniview_text_color());
+        graphics_draw_text(ctx, data->medium_text, text_font,
+          GRect(0, box_y2, bounds.size.w, h2),
+          GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+      }
       break;
+    }
 
     case MINIVIEW_MODE_ICON_TEXT: {
-      if (data->icon_bitmap) {
-        GSize sz = gbitmap_get_bounds(data->icon_bitmap).size;
-        // Place icon in upper half, vertically centered between border and midpoint
-        int16_t icon_y = MINIVIEW_BORDER_SIZE + (center.y - MINIVIEW_BORDER_SIZE - sz.h) / 2;
-        GPoint icon_center = GPoint(center.x, icon_y + sz.h / 2);
-        prv_draw_icon_centered_at(ctx, data->icon_bitmap, icon_center, prv_miniview_icon_op());
+      int16_t h1 = data->icon_bitmap ? gbitmap_get_bounds(data->icon_bitmap).size.h : 0;
+      GFont text_font = prv_font_for_medium_line(data, data->medium_text);
+      int16_t c2 = (data->medium_text[0] != '\0') ? ((text_font == data->medium_font) ? MEDIUM_FONT_CAP_HEIGHT : SMALL_FONT_CAP_HEIGHT) : 0;
+      int16_t h2 = (data->medium_text[0] != '\0') ? ((text_font == data->medium_font) ? MEDIUM_FONT_HEIGHT : SMALL_FONT_HEIGHT) : 0;
+
+      int16_t cy_icon = 0;
+      int16_t box_y2 = 0;
+
+      if (h1 > 0 && c2 > 0) {
+        int16_t total_h = h1 + c2 + MINIVIEW_ELEMENT_PADDING;
+        int16_t top_y = center.y - total_h / 2;
+        cy_icon = top_y + h1 / 2;
+        box_y2 = top_y + h1 + MINIVIEW_ELEMENT_PADDING + c2 - h2;
+      } else if (h1 > 0) {
+        cy_icon = center.y;
+      } else if (c2 > 0) {
+        box_y2 = center.y - h2 + c2 / 2;
       }
-      graphics_context_set_text_color(ctx, prv_miniview_text_color());
-      graphics_draw_text(ctx, data->medium_text,
-        prv_font_for_medium_line(data, data->medium_text),
-        data->medium_text_bounds,
-        GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+
+      if (h1 > 0 && data->icon_bitmap) {
+        prv_draw_icon_centered_at(ctx, data->icon_bitmap,
+          GPoint(center.x, cy_icon), prv_miniview_icon_op());
+      }
+      if (c2 > 0) {
+        graphics_context_set_text_color(ctx, prv_miniview_text_color());
+        graphics_draw_text(ctx, data->medium_text, text_font,
+          GRect(0, box_y2, bounds.size.w, h2),
+          GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
+      }
       break;
     }
 
@@ -186,16 +232,16 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
         GPoint(center.x - inner_radius, center.y),
         GPoint(center.x + inner_radius, center.y));
         
-        // 14 evenly spaced dots, colored by actual position: black on white top,
-        // white on black bottom. With dots starting at 12 o'clock the split is
-        // i=0..3 and i=11..13 (top) vs i=4..10 (bottom), so check y directly.
-        for (int i = 0; i < 14; i++) {
-          int32_t angle = TRIG_MAX_ANGLE * i / 14;
-          GPoint dot = GPoint(
-            center.x + (int16_t)(sin_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO),
-            center.y - (int16_t)(cos_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO)
-          );
-        
+      // 14 evenly spaced dots, colored by actual position: black on white top,
+      // white on black bottom. With dots starting at 12 o'clock the split is
+      // i=0..3 and i=11..13 (top) vs i=4..10 (bottom), so check y directly.
+      for (int i = 0; i < 14; i++) {
+        int32_t angle = TRIG_MAX_ANGLE * i / 14;
+        GPoint dot = GPoint(
+          center.x + (int16_t)(sin_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO),
+          center.y - (int16_t)(cos_lookup(angle) * dot_ring_radius / TRIG_MAX_RATIO)
+        );
+      
         graphics_context_set_fill_color(ctx, dot.y > center.y ? GColorWhite : GColorBlack);
         graphics_fill_rect(ctx, GRect(dot.x - 1, dot.y - 1, 2, 2), 0, GCornerNone);
       }
@@ -212,16 +258,46 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
     }
 
     case MINIVIEW_MODE_ICON_COLUMN: {
-      int16_t offsets_y[3] = { -ICON_COLUMN_SPACING, 0, ICON_COLUMN_SPACING };
+      int16_t h0 = data->column_bitmaps[0] ? gbitmap_get_bounds(data->column_bitmaps[0]).size.h : 0;
+      int16_t h1 = data->column_bitmaps[1] ? gbitmap_get_bounds(data->column_bitmaps[1]).size.h : 0;
+      int16_t h2 = data->column_bitmaps[2] ? gbitmap_get_bounds(data->column_bitmaps[2]).size.h : 0;
+
+      int16_t cy[3] = {0};
+
+      if (h1 > 0) {
+        cy[1] = center.y;
+        if (h0 > 0) {
+          cy[0] = center.y - (h0 / 2 + h1 / 2 + MINIVIEW_ELEMENT_PADDING);
+        }
+        if (h2 > 0) {
+          cy[2] = center.y + (h1 / 2 + h2 / 2 + MINIVIEW_ELEMENT_PADDING);
+        }
+      } else {
+        if (h0 > 0 && h2 > 0) {
+          int16_t total_h = h0 + h2 + MINIVIEW_ELEMENT_PADDING;
+          int16_t top_y = center.y - total_h / 2;
+          cy[0] = top_y + h0 / 2;
+          cy[2] = top_y + h0 + MINIVIEW_ELEMENT_PADDING + h2 / 2;
+        } else if (h0 > 0) {
+          cy[0] = center.y;
+        } else if (h2 > 0) {
+          cy[2] = center.y;
+        }
+      }
+
       for (int i = 0; i < 3; i++) {
         if (data->column_bitmaps[i]) {
-          GPoint icon_center = GPoint(center.x, center.y + offsets_y[i]);
-          prv_draw_icon_centered_at(ctx, data->column_bitmaps[i], icon_center, prv_miniview_icon_op());
+          prv_draw_icon_centered_at(ctx, data->column_bitmaps[i],
+            GPoint(center.x, cy[i]), prv_miniview_icon_op());
         }
       }
       break;
     }
   }
+
+  // Draw border outline and decoration over top of whatever is displayed
+  prv_draw_border_outline(ctx, center, radius);
+  prv_draw_border_decoration(ctx, center, radius, inner_radius);
 }
 
 Layer *miniview_create(MiniviewConfig config) {
@@ -261,6 +337,9 @@ void miniview_set_small_text(Layer *layer, const char *text) {
   MiniviewData *data = layer_get_data(layer);
   strncpy(data->small_text, text, sizeof(data->small_text) - 1);
   data->small_text[sizeof(data->small_text) - 1] = '\0';
+  for (char *p = data->small_text; *p; p++) {
+    if (*p >= 'a' && *p <= 'z') *p -= 32;
+  }
   layer_mark_dirty(layer);
 }
 
@@ -268,6 +347,9 @@ void miniview_set_medium_text(Layer *layer, const char *text) {
   MiniviewData *data = layer_get_data(layer);
   strncpy(data->medium_text, text, sizeof(data->medium_text) - 1);
   data->medium_text[sizeof(data->medium_text) - 1] = '\0';
+  for (char *p = data->medium_text; *p; p++) {
+    if (*p >= 'a' && *p <= 'z') *p -= 32;
+  }
   layer_mark_dirty(layer);
 }
 
