@@ -430,8 +430,13 @@ static void main_window_load(Window *window) {
     s_font_small = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_BEBAS_NEUE_20));
 #endif
+#if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
+    s_font_seconds = fonts_load_custom_font(
+        resource_get_handle(RESOURCE_ID_NUMS_THIN_26));
+#else
     s_font_seconds = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_NUMS_THIN_16));
+#endif
 
     layout_init(&s_layout, bounds);
 

@@ -122,7 +122,7 @@ Layer *time_display_create(GRect bounds, GFont seconds_font) {
     bounds.size.w - SECONDS_LAYER_WIDTH,
     glyph_top,
     SECONDS_LAYER_WIDTH,
-    SMALL_FONT_HEIGHT
+    SECONDS_FONT_HEIGHT
   );
   data->seconds_layer = text_layer_create(seconds_bounds);
   text_layer_set_background_color(data->seconds_layer, GColorClear);
@@ -189,7 +189,7 @@ void time_display_set_time(Layer *layer, struct tm *tick_time) {
     int16_t start_x = prv_compute_time_x(lbounds.size.w, glyph_w, true);
     int16_t glyph_top = (lbounds.size.h - BITMAP_GLYPH_HEIGHT) / 2;
     layer_set_frame(text_layer_get_layer(data->seconds_layer),
-      GRect(start_x + glyph_w + GLYPH_SPACING_X, glyph_top, SECONDS_LAYER_WIDTH, SMALL_FONT_HEIGHT));
+      GRect(start_x + glyph_w + GLYPH_SPACING_X, glyph_top, SECONDS_LAYER_WIDTH, SECONDS_FONT_HEIGHT));
 
     if (data->seconds_visible) {
       static char seconds_buf[3];

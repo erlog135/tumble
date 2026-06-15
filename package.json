@@ -93,6 +93,12 @@
           "characterRegex": "^[0-9]"
         },
         {
+          "type": "font",
+          "name": "NUMS_THIN_26",
+          "file": "fonts/NumsThin26.ttf",
+          "characterRegex": "^[0-9]"
+        },
+        {
           "type": "bitmap",
           "name": "SHEET_GLYPHS_52",
           "file": "fonts/bitmaps/BebasNeue52.png",
