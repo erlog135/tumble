@@ -112,29 +112,6 @@
         },
         {
           "type": "bitmap",
-          "name": "ICON_GLOBE",
-          "file": "icons/Globe.png",
-          "memoryFormat": "1Bit",
-          "targetPlatforms": [
-            "aplite",
-            "basalt",
-            "chalk",
-            "diorite",
-            "flint"
-          ]
-        },
-        {
-          "type": "bitmap",
-          "name": "ICON_GLOBE",
-          "file": "icons/Globe_lg.png",
-          "memoryFormat": "1Bit",
-          "targetPlatforms": [
-            "emery",
-            "gabbro"
-          ]
-        },
-        {
-          "type": "bitmap",
           "name": "ICON_STEPS",
           "file": "icons/Steps.png",
           "memoryFormat": "1Bit",
