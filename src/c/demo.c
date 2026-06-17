@@ -184,7 +184,7 @@ void demo_inject_data(void) {
          * The TZ offset is already baked into settings so time_provider
          * will compute the right string on its first tick.  We also set
          * an initial value here for an instant display. */
-        miniview_set_small_text(miniview_layer, "");
+        miniview_set_small_text(miniview_layer, "UTC");
         miniview_set_medium_text(miniview_layer, "7:35 A");
 
 #endif /* DEMO_MODE */

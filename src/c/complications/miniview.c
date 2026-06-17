@@ -217,13 +217,14 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
       // Fill bottom half with black. In Pebble's system 0°=top, clockwise,
       // so the bottom half (y > center) runs from 90° to 270°.
       GRect inner_rect = GRect(
-        MINIVIEW_BORDER_SIZE, MINIVIEW_BORDER_SIZE,
-        bounds.size.w - 2 * MINIVIEW_BORDER_SIZE,
-        bounds.size.h - 2 * MINIVIEW_BORDER_SIZE
+        MINIVIEW_BORDER_SIZE/2,
+        MINIVIEW_BORDER_SIZE/2,
+        bounds.size.w - MINIVIEW_BORDER_SIZE/2,
+        bounds.size.h - MINIVIEW_BORDER_SIZE/2
       );
       graphics_context_set_fill_color(ctx, GColorBlack);
       graphics_fill_radial(ctx, inner_rect, GOvalScaleModeFitCircle,
-        inner_radius, DEG_TO_TRIGANGLE(90), DEG_TO_TRIGANGLE(270));
+        radius, DEG_TO_TRIGANGLE(90), DEG_TO_TRIGANGLE(270));
 
       // Horizontal divider spanning the full inner circle diameter
       graphics_context_set_stroke_color(ctx, GColorBlack);
