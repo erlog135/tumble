@@ -432,7 +432,7 @@ static void main_window_load(Window *window) {
 #endif
 #if defined(PBL_PLATFORM_EMERY) || defined(PBL_PLATFORM_GABBRO)
     s_font_seconds = fonts_load_custom_font(
-        resource_get_handle(RESOURCE_ID_NUMS_THIN_26));
+        resource_get_handle(RESOURCE_ID_NUMS_THIN_20));
 #else
     s_font_seconds = fonts_load_custom_font(
         resource_get_handle(RESOURCE_ID_NUMS_THIN_16));

@@ -94,8 +94,8 @@
         },
         {
           "type": "font",
-          "name": "NUMS_THIN_26",
-          "file": "fonts/NumsThin26.ttf",
+          "name": "NUMS_THIN_20",
+          "file": "fonts/NumsThin20.ttf",
           "characterRegex": "^[0-9]"
         },
         {
