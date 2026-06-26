@@ -19,7 +19,6 @@ typedef enum {
 } ProviderId;
 
 static Layer *s_window_layer;
-static Layout *s_layout;
 static GFont s_font_small;
 static GFont s_font_medium;
 static Layer *s_layers[COMPLICATION_COUNT];
@@ -27,7 +26,6 @@ static ProviderId s_slot_owner[COMPLICATION_COUNT];
 static uint8_t s_slot_option[COMPLICATION_COUNT];
 
 Layer *providers_get_window_layer(void) { return s_window_layer; }
-Layout *providers_get_layout(void)      { return s_layout; }
 GFont providers_get_font_small(void)    { return s_font_small; }
 GFont providers_get_font_medium(void)   { return s_font_medium; }
 
@@ -131,10 +129,9 @@ static void prv_destroy_layer(ComplicationSlot slot) {
     s_layers[slot] = NULL;
 }
 
-void providers_init(Layer *window_layer, Layout *layout,
+void providers_init(Layer *window_layer,
                     GFont font_small, GFont font_medium) {
     s_window_layer = window_layer;
-    s_layout = layout;
     s_font_small = font_small;
     s_font_medium = font_medium;
 

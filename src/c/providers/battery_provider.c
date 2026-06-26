@@ -78,7 +78,6 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
   s_slots[slot].active = true;
   s_slots[slot].option = option;
 
-  Layout *layout = providers_get_layout();
   GFont font_small = providers_get_font_small();
   Layer *window_layer = providers_get_window_layer();
   Layer *layer = NULL;
@@ -86,8 +85,8 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
   switch (slot) {
     case COMPLICATION_GRAPH: {
       BatteryChargeState state = battery_state_service_peek();
-      layer = graph_create(layout->graph_layer_bounds,
-                           layout->graph_plot_bounds, (GraphConfig) {
+      layer = graph_create(LAYOUT_GRAPH_LAYER,
+                           LAYOUT_GRAPH_PLOT, (GraphConfig) {
         .style = GRAPH_STYLE_FILLED,
         .h_markers = 2,
         .v_markers = 1,
@@ -131,7 +130,7 @@ void battery_provider_activate(ComplicationSlot slot, uint8_t option) {
     case COMPLICATION_BOTTOM_LEFT:
     case COMPLICATION_BOTTOM_RIGHT: {
       GRect bounds = (slot == COMPLICATION_BOTTOM_LEFT)
-        ? layout->bottom_left_bounds : layout->bottom_right_bounds;
+        ? LAYOUT_BOTTOM_LEFT : LAYOUT_BOTTOM_RIGHT;
       BottomAlign align = (slot == COMPLICATION_BOTTOM_LEFT)
         ? BOTTOM_ALIGN_LEFT : BOTTOM_ALIGN_RIGHT;
       BatteryChargeState bstate = battery_state_service_peek();

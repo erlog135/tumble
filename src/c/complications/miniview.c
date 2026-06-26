@@ -302,13 +302,12 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
 }
 
 Layer *miniview_create(MiniviewConfig config) {
-  Layout *layout = providers_get_layout();
-  GRect bounds = layout->miniview_bounds;
+  GRect bounds = LAYOUT_MINIVIEW;
   Layer *layer = layer_create_with_data(bounds, sizeof(MiniviewData));
   MiniviewData *data = layer_get_data(layer);
   data->config = config;
-  data->small_text_bounds = layout->miniview_small_text_bounds;
-  data->medium_text_bounds = layout->miniview_medium_text_bounds;
+  data->small_text_bounds = LAYOUT_MINIVIEW_SMALL_TEXT;
+  data->medium_text_bounds = LAYOUT_MINIVIEW_MEDIUM_TEXT;
   data->small_font = providers_get_font_small();
   data->medium_font = providers_get_font_medium();
 

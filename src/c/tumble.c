@@ -20,7 +20,6 @@ static bool s_js_ready = false;
 static Layer *s_debug_layer;
 #endif
 
-static Layout s_layout;
 static GFont s_font_medium;
 static GFont s_font_small;
 static GFont s_font_seconds;
@@ -111,12 +110,11 @@ static void prv_apply_unobstructed_layout(void) {
         layer_set_hidden(br, obstructed);
     }
 
-    GRect tb = s_layout.time_layer_bounds;
+    GRect tb = LAYOUT_TIME_LAYER;
     if (obstructed) {
         /* Vertically center the glyph band between the bottom of the top section
          * (TOP_SECTION_HEIGHT_RATIO) and the bottom of the unobstructed area. */
-        int16_t bottom_top = s_layout.top_section_bounds.origin.y
-            + s_layout.top_section_bounds.size.h;
+        int16_t bottom_top = LAYOUT_OY + LAYOUT_TOP_H;
         int16_t bottom_unob = unob.origin.y + unob.size.h;
         int16_t band_h = bottom_unob - bottom_top;
         int16_t tight_h = BITMAP_GLYPH_HEIGHT;
@@ -215,11 +213,11 @@ static void prv_refresh_miniview_corner_layer(Layer *window_layer) {
 static void debug_layer_update_proc(Layer *layer, GContext *ctx) {
     graphics_context_set_antialiased(ctx, false);
     graphics_context_set_stroke_color(ctx, GColorWhite);
-    graphics_draw_rect(ctx, s_layout.graph_layer_bounds);
-    graphics_draw_rect(ctx, s_layout.miniview_bounds);
-    graphics_draw_rect(ctx, s_layout.time_layer_bounds);
-    graphics_draw_rect(ctx, s_layout.bottom_left_bounds);
-    graphics_draw_rect(ctx, s_layout.bottom_right_bounds);
+    graphics_draw_rect(ctx, LAYOUT_GRAPH_LAYER);
+    graphics_draw_rect(ctx, LAYOUT_MINIVIEW);
+    graphics_draw_rect(ctx, LAYOUT_TIME_LAYER);
+    graphics_draw_rect(ctx, LAYOUT_BOTTOM_LEFT);
+    graphics_draw_rect(ctx, LAYOUT_BOTTOM_RIGHT);
 }
 #endif
 
@@ -437,13 +435,11 @@ static void main_window_load(Window *window) {
         resource_get_handle(RESOURCE_ID_NUMS_THIN_16));
 #endif
 
-    layout_init(&s_layout, bounds);
-
     s_time_display_layer = time_display_create(
-        s_layout.time_layer_bounds, s_font_seconds);
+        LAYOUT_TIME_LAYER, s_font_seconds);
     layer_add_child(window_layer, s_time_display_layer);
 
-    providers_init(window_layer, &s_layout, s_font_small, s_font_medium);
+    providers_init(window_layer, s_font_small, s_font_medium);
     providers_apply_settings();
 #if defined(DEMO_MODE)
     demo_inject_data();
