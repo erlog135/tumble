@@ -102,7 +102,6 @@ module.exports = [
         "label": "Air pressure",
         "defaultValue": "mb",
         "options": [
-          { "label": "hPa", "value": "hpa" },
           { "label": "mb", "value": "mb" },
           { "label": "inHg", "value": "inhg" }
         ]

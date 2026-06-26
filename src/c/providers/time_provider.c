@@ -137,7 +137,6 @@ static void prv_format_tz_time(char *buf, size_t sz, struct tm *tz_tm) {
         const char *h = (tmp[0] == '0') ? tmp + 1 : tmp;
         const char *ap = (tz_tm->tm_hour < 12) ? "A" : "P";
         snprintf(buf, sz, "%s %s", h, ap);
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "tz_time: %s %s %s", h, ap, buf);
     }
 }
 

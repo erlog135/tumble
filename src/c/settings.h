@@ -17,8 +17,7 @@ typedef enum {
 
 typedef enum {
     UNIT_PRESSURE_MB   = 0,
-    UNIT_PRESSURE_HPA  = 1,
-    UNIT_PRESSURE_INHG = 2,
+    UNIT_PRESSURE_INHG = 1,
 } UnitPressure;
 
 typedef enum {

@@ -345,8 +345,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
             s->unit_altitude = (strcmp(t->value->cstring, "m") == 0) ? UNIT_ALTITUDE_M : UNIT_ALTITUDE_FT;
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_UNIT_PRESSURE)) && t->type == TUPLE_CSTRING) {
             const char *v = t->value->cstring;
-            if (strcmp(v, "hpa") == 0)        s->unit_pressure = UNIT_PRESSURE_HPA;
-            else if (strcmp(v, "inhg") == 0)  s->unit_pressure = UNIT_PRESSURE_INHG;
+            if (strcmp(v, "inhg") == 0)  s->unit_pressure = UNIT_PRESSURE_INHG;
             else                              s->unit_pressure = UNIT_PRESSURE_MB;
         }
         if ((t = dict_find(iter, MESSAGE_KEY_CFG_MINIVIEW_OPTION)))
@@ -528,7 +527,7 @@ static void init(void) {
     app_message_register_inbox_dropped(inbox_dropped_handler);
     app_message_register_outbox_sent(outbox_sent_handler);
     app_message_register_outbox_failed(outbox_failed_handler);
-    app_message_open(240, 240);
+    app_message_open(128, 64);
 #endif
 }
 

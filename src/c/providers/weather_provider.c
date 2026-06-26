@@ -13,9 +13,9 @@ static int8_t prv_scale_temperature(int16_t temp) {
   return (int8_t)v;
 }
 
-// Pressure: 870–1085 hPa → 0–127
-static int8_t prv_scale_pressure(int16_t hpa) {
-  int32_t v = ((int32_t)(hpa - 870) * 127) / 215;
+// Pressure: 870–1085 mb → 0–127
+static int8_t prv_scale_pressure(int16_t mb) {
+  int32_t v = ((int32_t)(mb - 870) * 127) / 215;
   if (v < 0) v = 0;
   if (v > 127) v = 127;
   return (int8_t)v;
@@ -38,14 +38,14 @@ static void prv_format_temperature(char *buf, size_t n, int16_t temp_f, uint8_t 
   }
 }
 
-static void prv_format_pressure(char *buf, size_t n, int16_t hpa, uint8_t unit) {
-  if (unit == UNIT_PRESSURE_HPA) {
-    snprintf(buf, n, "%d", hpa);
+static void prv_format_pressure(char *buf, size_t n, int16_t mb, uint8_t unit) {
+  if (unit == UNIT_PRESSURE_MB) {
+    snprintf(buf, n, "%d", mb);
   } else if (unit == UNIT_PRESSURE_INHG) {
-    int32_t hundredths = ((int32_t)hpa * 2953) / 1000;
+    int32_t hundredths = ((int32_t)mb * 2953) / 1000;
     snprintf(buf, n, "%d.%02d", (int)(hundredths / 100), (int)(hundredths % 100));
   } else {
-    snprintf(buf, n, "%d", hpa);
+    snprintf(buf, n, "%d", mb);
   }
 }
 
@@ -92,7 +92,7 @@ typedef enum {
   WEATHER_COND_RAINY               = 5,  // drizzle, rain, rain showers
   WEATHER_COND_SNOWY_RAINY         = 6,  // freezing drizzle / freezing rain
   WEATHER_COND_SNOWY               = 7,  // snow fall, snow grains, snow showers
-  WEATHER_COND_STORMY              = 8,  // thunderstorm ± hail
+  WEATHER_COND_STORMY              = 8,  // thunderstorm / hail
   WEATHER_COND_CLEAR_NIGHT         = 9,
   WEATHER_COND_PARTLY_CLOUDY_NIGHT = 10, // WMO 1–2 at night
 } WeatherCondition;
