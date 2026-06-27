@@ -93,18 +93,18 @@ static void prv_draw_icon_centered_at(GContext *ctx, GBitmap *bitmap, GPoint cen
   graphics_draw_bitmap_in_rect(ctx, bitmap, rect);
 }
 
-/** Count UTF-8 code points (e.g. U+00B0 degree is one character, not two bytes). */
-static size_t prv_utf8_char_count(const char *s) {
+//count characters (pretty much all the ones except degree and space)
+static size_t prv_nonspace_ascii_char_count(const char *s) {
   size_t n = 0;
   for (; *s; s++) {
-    if ((*s & 0xC0) != 0x80) n++;
-  }
+    if ( *s != ' ' && !(*s & 0x80)) n++;
+  } 
   return n;
 }
 
 /** Medium line uses small font when text is longer than 3 characters (fits miniview). */
 static GFont prv_font_for_medium_line(const MiniviewData *data, const char *text) {
-  if (prv_utf8_char_count(text) > 3) {
+  if (prv_nonspace_ascii_char_count(text) > 3) {
     return data->small_font;
   }
   return data->medium_font;

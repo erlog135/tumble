@@ -82,12 +82,6 @@
         },
         {
           "type": "font",
-          "name": "NUMS_16",
-          "file": "fonts/Nums12.ttf",
-          "characterRegex": "^[0-9:-°]"
-        },
-        {
-          "type": "font",
           "name": "NUMS_THIN_16",
           "file": "fonts/NumsThin13.ttf",
           "characterRegex": "^[0-9]"

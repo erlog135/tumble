@@ -191,12 +191,12 @@ module.exports = [
           { "label": "Elevation", "value": "5" },
           { "label": "Air pressure", "value": "6" },
           { "label": "Sunrise / Sunset time", "value": "7" },
-          { "label": "Current weather", "value": "8" },
+          { "label": "Weather", "value": "8" },
           { "label": "Custom time zone", "value": "9" },
           { "label": "Current sun position", "value": "10" },
           { "label": "Current moon phase", "value": "11" },
           { "label": "Battery", "value": "12" },
-          { "label": "Battery / Quiet Time / BT status", "value": "13" }
+          { "label": "Quiet Time / Battery / BT status", "value": "13" }
         ]
       },
       {
@@ -214,7 +214,7 @@ module.exports = [
           { "label": "Air pressure", "value": "6" },
           { "label": "Pressure trend", "value": "7" },
           { "label": "Sunrise / Sunset time", "value": "8" },
-          { "label": "Temperature", "value": "9" },
+          { "label": "Weather", "value": "9" },
           { "label": "Battery", "value": "10" },
           { "label": "Custom time zone", "value": "11" }
         ]
@@ -234,7 +234,7 @@ module.exports = [
           { "label": "Air pressure", "value": "6" },
           { "label": "Pressure trend", "value": "7" },
           { "label": "Sunrise / Sunset time", "value": "8" },
-          { "label": "Temperature", "value": "9" },
+          { "label": "Weather", "value": "9" },
           { "label": "Battery", "value": "10" },
           { "label": "Custom time zone", "value": "11" }
         ]

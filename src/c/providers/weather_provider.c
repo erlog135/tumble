@@ -368,6 +368,14 @@ void weather_provider_tick(struct tm *tick_time) {
               prv_format_pressure(buf, sizeof(buf), s_pressure, cfg->unit_pressure);      break;
             case MINIVIEW_OPTION_WEATHER:
               prv_format_temperature(buf, sizeof(buf), s_temperature, cfg->unit_temp);
+
+              //if temp doesn't start with a minus, add some spaces to try to center it in miniview
+              if(buf[0] != '-') {
+                memmove(&buf[2], &buf[0], sizeof(buf) - 2);
+                buf[0] = ' ';
+                buf[1] = ' ';
+              }
+
               miniview_set_icon_resource_id(layer, prv_icon_for_condition(s_condition));
               break;
             default:

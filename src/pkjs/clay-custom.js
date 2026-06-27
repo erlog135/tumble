@@ -3,10 +3,10 @@
  * complication options when the connected watch does not support them.
  * Mirrors @rebble/clay capabilityMap HEALTH + HR-capable platforms (no HR on basalt/chalk).
  */
-module.exports = function() {
+module.exports = function () {
   var clayConfig = this;
 
-  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
+  clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function () {
     var wi = clayConfig.meta && clayConfig.meta.activeWatchInfo;
     if (!wi) return;
 
@@ -21,7 +21,7 @@ module.exports = function() {
 
     function hasHeartRateSensor() {
       //TODO: what about when a diorite doesn't have a heart rate sensor?
-      var hrPlatforms = { diorite: 1, emery: 1};
+      var hrPlatforms = { diorite: 1, emery: 1 };
       return !!hrPlatforms[wi.platform];
     }
 
@@ -75,7 +75,7 @@ module.exports = function() {
 
     if (!hasHealth) {
       removeGraph = { '0': 1, '1': 1 };
-      removeMiniview = { '2': 1, '3': 1, '4': 1 };
+      removeMiniview = { '2': 1, '3': 1, '4': 1, '13': 1 };
       removeBottom = { '2': 1, '3': 1, '4': 1 };
     } else if (!hasHR) {
       removeGraph = { '1': 1 };
