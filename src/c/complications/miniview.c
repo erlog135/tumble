@@ -230,8 +230,8 @@ static void miniview_update_proc(Layer *layer, GContext *ctx) {
       graphics_context_set_stroke_color(ctx, GColorBlack);
       graphics_context_set_stroke_width(ctx, 2);
       graphics_draw_line(ctx,
-        GPoint(center.x - inner_radius, center.y),
-        GPoint(center.x + inner_radius, center.y));
+        GPoint(center.x - inner_radius, center.y+1),
+        GPoint(center.x + inner_radius, center.y+1));
         
       // 14 evenly spaced dots, colored by actual position: black on white top,
       // white on black bottom. With dots starting at 12 o'clock the split is
